@@ -256,6 +256,19 @@ namespace CapaVista_Navegador
                     datos.Add(campo, valor);
                 }
 
+                DateTimePicker dtpNacimiento =
+                    (DateTimePicker)controles["fecha_nacimiento"];
+
+                DateTimePicker dtpContratacion =
+                    (DateTimePicker)controles["fecha_contratacion"];
+
+                if (!ValidarFechas(
+                    dtpNacimiento.Value,
+                    dtpContratacion.Value))
+                {
+                    return;
+                }
+
                 foreach (string campoCorreo
                     in camposCorreo)
                 {
@@ -408,7 +421,50 @@ namespace CapaVista_Navegador
                 );
             }
         }
+        private bool ValidarFechas(
+            DateTime fechaNacimiento,
+            DateTime fechaContratacion)
+        {
+            DateTime hoy = DateTime.Today;
 
+            if (fechaNacimiento > hoy)
+            {
+                MessageBox.Show(
+                    "La fecha de nacimiento no puede ser futura.",
+                    "Fecha inválida",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                return false;
+            }
+
+            if (fechaContratacion > hoy)
+            {
+                MessageBox.Show(
+                    "La fecha de contratación no puede ser futura.",
+                    "Fecha inválida",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                return false;
+            }
+
+            if (fechaNacimiento >= fechaContratacion)
+            {
+                MessageBox.Show(
+                    "La fecha de nacimiento debe ser anterior a la fecha de contratación.",
+                    "Fechas incoherentes",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                return false;
+            }
+
+            return true;
+        }
         private bool ValidarCorreo(string correo)
         {
             string patron =
