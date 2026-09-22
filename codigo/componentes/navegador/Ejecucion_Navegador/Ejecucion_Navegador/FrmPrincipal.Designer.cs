@@ -1,6 +1,6 @@
 ﻿namespace CapaVista_Navegador
 {
-    partial class Form1
+    partial class FrmPrincipal
     {
         /// <summary>
         /// Required designer variable.
@@ -30,12 +30,12 @@
         {
             this.SuspendLayout();
             //
-            // Form1
+            // FrmPrincipal
             //
             // No agrega controles propios: el control Navegador (la cinta de botones) ya viene insertado
             // una sola vez desde el formulario base FrmNavegadorCrud. Agregar aquí un "navegador1"/
             // "navegador2" propios duplicaría la cinta de botones en pantalla.
-            this.Name = "Form1";
+            this.Name = "FrmPrincipal";
             this.ResumeLayout(false);
 
         }
