@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script type="text/javascript">
+        document.createElement("header"); document.createElement("nav");
+        document.createElement("main"); document.createElement("section");
+        document.createElement("figure"); document.createElement("figcaption");
+        document.createElement("footer");
+    </script>
+    <title>Base de datos y conexión ODBC</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor">
+            <img class="logo" src="../imagenes/logo_navegador.jpg" alt="Logo del componente Navegador">
+            <h1>Base de datos y conexión ODBC</h1>
+            <p>Guía para comprender la conexión que utiliza el componente.</p>
+        </div>
+    </header>
+
+    <nav class="menu">
+        <div class="contenedor">
+            <a href="01_cargar_control.html">Cargar control</a>
+            <a href="02_parametros.html">Parámetros</a>
+            <a href="03_tabla.html">Tabla</a>
+            <a href="04_numeros.html">Números</a>
+            <a class="activo" href="05_base_datos.html">Base de datos</a>
+            <a href="06_crud.html">CRUD</a>
+            <a href="07_botones.html">Botones</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+        <p class="introduccion">El Navegador utiliza ODBC para comunicarse con la base de datos. ODBC funciona como un intermediario entre la aplicación y el motor de datos; su configuración se identifica mediante un nombre llamado DSN.</p>
+
+        <section class="tema">
+            <h2>¿Cómo se realiza la conexión?</h2>
+            <p>El modelo crea una conexión utilizando el DSN <code>EmbutidosS.A</code> y luego intenta abrirla. El formulario consumidor no recibe credenciales ni cadenas de conexión: solamente indica la tabla que necesita utilizar.</p>
+
+            <div class="referencia-codigo">
+                Flujo utilizado por el componente:
+                <code>Formulario → Navegador → ODBC → Base de datos</code>
+            </div>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación de la conexión ODBC</strong>
+                <span>Capa Modelo → Conexión → clase ClsConexionBD</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/10_conexion_odbc_codigo.png" alt="Código de conexión ODBC mediante el DSN EmbutidosS.A">
+                <figcaption>Creación y apertura de la conexión ODBC utilizada por el componente.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>¿Qué revisar si no aparecen datos?</h2>
+            <ol class="pasos">
+                <li>Comprobar que el DSN <code>EmbutidosS.A</code> exista en Windows.</li>
+                <li>Probar la conexión ODBC sin mostrar contraseñas en la captura.</li>
+                <li>Confirmar que la tabla configurada exista en la base de datos.</li>
+                <li>Presionar Consultar o Refrescar y revisar la cuadrícula.</li>
+            </ol>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación de la configuración del DSN</strong>
+                <span>Windows → Administrador de orígenes de datos ODBC → DSN EmbutidosS.A</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/11_configuracion_odbc.png" alt="Configuración del DSN EmbutidosS.A y prueba de conexión satisfactoria">
+                <figcaption>DSN EmbutidosS.A configurado en el Administrador ODBC.</figcaption>
+            </figure>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del resultado de la conexión</strong>
+                <span>Vista en ejecución → formulario Form1 → tabla tblempleado</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/05_crud_cuadricula.png" alt="Cuadrícula cargada después de establecer la conexión">
+                <figcaption>Datos recuperados correctamente desde la tabla configurada.</figcaption>
+            </figure>
+        </section>
+
+        <div class="navegacion-paginas">
+            <a href="04_numeros.html">Anterior</a>
+            <a href="06_crud.html">Siguiente: CRUD</a>
+        </div>
+    </main>
+
+    <footer class="pie">Manual de uso del componente Navegador</footer>
+</body>
+</html>

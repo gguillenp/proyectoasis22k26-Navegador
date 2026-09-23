@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script type="text/javascript">
+        document.createElement("header"); document.createElement("nav");
+        document.createElement("main"); document.createElement("section");
+        document.createElement("figure"); document.createElement("figcaption");
+        document.createElement("footer");
+    </script>
+    <title>Uso del CRUD</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor">
+            <img class="logo" src="../imagenes/logo_navegador.jpg" alt="Logo del componente Navegador">
+            <h1>Uso del CRUD</h1>
+            <p>Guía de las operaciones disponibles en el mantenimiento.</p>
+        </div>
+    </header>
+
+    <nav class="menu">
+        <div class="contenedor">
+            <a href="01_cargar_control.html">Cargar control</a>
+            <a href="02_parametros.html">Parámetros</a>
+            <a href="03_tabla.html">Tabla</a>
+            <a href="04_numeros.html">Números</a>
+            <a href="05_base_datos.html">Base de datos</a>
+            <a class="activo" href="06_crud.html">CRUD</a>
+            <a href="07_botones.html">Botones</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+        <p class="introduccion">CRUD reúne las cuatro operaciones principales de un mantenimiento: crear, consultar, actualizar y eliminar registros. El Navegador presenta estas acciones mediante botones y utiliza la fila seleccionada de la cuadrícula cuando necesita trabajar con un registro existente.</p>
+
+        <section class="tema">
+            <h2>Consultar y visualizar registros</h2>
+            <p>En la versión actual, Consultar y Refrescar cierran cualquier formulario abierto, vuelven a leer la tabla y muestran los datos en la cuadrícula. La integración con el componente externo de Consultas todavía está pendiente.</p>
+
+            <ol class="pasos">
+                <li>Presionar Consultar o Refrescar.</li>
+                <li>Esperar a que se muestre la cuadrícula.</li>
+                <li>Seleccionar la fila con la que se desea trabajar.</li>
+            </ol>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del código de Consultar</strong>
+                <span>Capa Vista → Formularios → clase ClsCrudCoordinador</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/12_codigo_consultar.png" alt="Código que consulta la tabla y muestra los datos en la cuadrícula">
+                <figcaption>Consulta de la tabla y presentación de la información en el formulario.</figcaption>
+            </figure>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del resultado de Consultar</strong>
+                <span>Vista en ejecución → formulario Form1 → tabla tblempleado</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/21_cuadricula_botones.png" alt="Cuadrícula con registros de empleados y cinta del Navegador">
+                <figcaption>Registros mostrados después de utilizar Consultar.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>Ingresar un registro</h2>
+            <p>Ingresar obtiene el esquema de la tabla y construye un formulario con los campos necesarios. Los campos pueden aparecer como cajas de texto, calendarios, casillas o listas, según la columna.</p>
+
+            <ol class="pasos">
+                <li>Presionar Ingresar.</li>
+                <li>Completar los campos habilitados.</li>
+                <li>Presionar Guardar para registrar la información o Cancelar para descartarla.</li>
+            </ol>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del código de Ingresar</strong>
+                <span>Capa Vista → Formularios → clase ClsCrudCoordinador</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/13_codigo_ingresar.png" alt="Método NavegadorMetIngresar que obtiene el esquema y abre el formulario">
+                <figcaption>Código ejecutado cuando se presiona Ingresar.</figcaption>
+            </figure>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del formulario de ingreso</strong>
+                <span>Vista en ejecución → formulario Form1 → acción Ingresar</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/23_formulario_ingresar.png" alt="Formulario dinámico vacío para ingresar un empleado">
+                <figcaption>Formulario de ingreso generado a partir de tblempleado.</figcaption>
+            </figure>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación de la confirmación de ingreso</strong>
+                <span>Vista en ejecución → formulario Form1 → acción Guardar</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/14_confirmacion_ingreso.png" alt="Confirmación de ingreso con los datos del nuevo empleado">
+                <figcaption>Confirmación presentada antes de guardar el nuevo registro.</figcaption>
+            </figure>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del registro ingresado</strong>
+                <span>Vista en ejecución → formulario Form1 → cuadrícula de tblempleado</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/15_registro_guardado.png" alt="Nuevo registro mostrado en la cuadrícula después de guardarlo">
+                <figcaption>Resultado del ingreso después de actualizar la cuadrícula.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>Modificar un registro</h2>
+            <p>Modificar toma la fila seleccionada, obtiene su llave primaria y abre el formulario con los valores actuales. La llave queda protegida para evitar que el registro pierda su identificación.</p>
+
+            <ol class="pasos">
+                <li>Seleccionar una fila de la cuadrícula.</li>
+                <li>Presionar Modificar.</li>
+                <li>Cambiar los valores permitidos y presionar Guardar.</li>
+            </ol>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del código de Modificar</strong>
+                <span>Capa Vista → Formularios → clase ClsCrudCoordinador</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/16_codigo_modificar.png" alt="Código que obtiene la fila y las llaves antes de modificar">
+                <figcaption>Selección del registro y apertura del formulario en modo modificación.</figcaption>
+            </figure>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del formulario de modificación</strong>
+                <span>Vista en ejecución → formulario Form1 → acción Modificar</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/17_formulario_modificar.png" alt="Formulario de modificación con los datos del empleado seleccionado">
+                <figcaption>Registro cargado para modificar, con la llave primaria protegida.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>Eliminar un registro</h2>
+            <p>Eliminar obtiene las llaves de la fila seleccionada y ejecuta la eliminación. Antes de confirmar, debe verificarse que la fila seleccionada sea realmente la que se desea retirar.</p>
+
+            <ol class="pasos">
+                <li>Seleccionar el registro.</li>
+                <li>Presionar Eliminar.</li>
+                <li>Revisar el mensaje y confirmar solamente si los datos son correctos.</li>
+            </ol>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del código de Eliminar</strong>
+                <span>Capa Vista → Formularios → clase ClsCrudCoordinador</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/18_codigo_eliminar.png" alt="Método que obtiene las llaves y elimina el registro seleccionado">
+                <figcaption>Código ejecutado para eliminar el registro seleccionado.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>Guardar o cancelar</h2>
+            <p>Guardar recopila los valores del formulario y decide si debe insertar o actualizar. Cuando termina correctamente, cierra el formulario y vuelve a consultar la tabla. Cancelar cierra el formulario sin guardar.</p>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del código de Guardar</strong>
+                <span>Capa Vista → Formularios → clase ClsCrudCoordinador</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/19_codigo_guardar.png" alt="Código que obtiene los datos y guarda el registro">
+                <figcaption>Proceso de guardado y actualización de la cuadrícula.</figcaption>
+            </figure>
+        </section>
+
+        <div class="navegacion-paginas">
+            <a href="05_base_datos.html">Anterior</a>
+            <a href="07_botones.html">Siguiente: Botones</a>
+        </div>
+    </main>
+
+    <footer class="pie">Manual de uso del componente Navegador</footer>
+</body>
+</html>

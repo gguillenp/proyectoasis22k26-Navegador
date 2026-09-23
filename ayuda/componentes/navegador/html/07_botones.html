@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script type="text/javascript">
+        document.createElement("header"); document.createElement("nav");
+        document.createElement("main"); document.createElement("section");
+        document.createElement("figure"); document.createElement("figcaption");
+        document.createElement("footer");
+    </script>
+    <title>Botones del Navegador</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor">
+            <img class="logo" src="../imagenes/logo_navegador.jpg" alt="Logo del componente Navegador">
+            <h1>Botones del Navegador</h1>
+            <p>Guía rápida de las acciones disponibles en la cinta.</p>
+        </div>
+    </header>
+
+    <nav class="menu">
+        <div class="contenedor">
+            <a href="01_cargar_control.html">Cargar control</a>
+            <a href="02_parametros.html">Parámetros</a>
+            <a href="03_tabla.html">Tabla</a>
+            <a href="04_numeros.html">Números</a>
+            <a href="05_base_datos.html">Base de datos</a>
+            <a href="06_crud.html">CRUD</a>
+            <a class="activo" href="07_botones.html">Botones</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+        <p class="introduccion">La cinta reúne todas las acciones del mantenimiento. Cada botón envía el nombre de una acción al formulario base y este decide qué método debe ejecutar.</p>
+
+        <section class="tema">
+            <h2>¿Cómo se conectan los botones?</h2>
+            <p>Durante la creación del control se enlaza el evento Click de cada botón con una acción como <code>INGRESAR</code>, <code>MODIFICAR</code> o <code>SIGUIENTE</code>. Después, el formulario recibe esa acción y llama al método correspondiente.</p>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del código de los botones</strong>
+                <span>Capa Vista → raíz de CapaVista_Navegador → clase Navegador</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/20_cableado_botones.png" alt="Código que conecta cada botón con una acción del Navegador">
+                <figcaption>Eventos Click conectados con las acciones del componente.</figcaption>
+            </figure>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación de la barra de botones</strong>
+                <span>Vista en ejecución → formulario Form1 → componente Navegador</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/21_cuadricula_botones.png" alt="Cinta completa de botones y cuadrícula del Navegador">
+                <figcaption>Orden de los botones mostrado al usuario.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>Botones principales</h2>
+            <ul>
+                <li><strong>Ingresar:</strong> abre un formulario vacío.</li>
+                <li><strong>Consultar:</strong> actualmente carga los registros en la cuadrícula.</li>
+                <li><strong>Modificar:</strong> abre la fila seleccionada.</li>
+                <li><strong>Eliminar:</strong> retira la fila seleccionada.</li>
+                <li><strong>Guardar:</strong> registra los datos del formulario abierto.</li>
+                <li><strong>Cancelar:</strong> cierra el formulario sin guardar.</li>
+            </ul>
+        </section>
+
+        <section class="tema">
+            <h2>Navegación entre registros</h2>
+            <p>Inicio selecciona la primera fila; Anterior y Siguiente cambian la selección una posición; y Fin selecciona la última fila disponible.</p>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del resultado de la navegación</strong>
+                <span>Vista en ejecución → formulario Form1 → cuadrícula de tblempleado</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/05_crud_cuadricula.png" alt="Fila seleccionada y botones de navegación del Navegador">
+                <figcaption>La fila resaltada cambia al utilizar Inicio, Anterior, Siguiente o Fin.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>Permisos de los botones</h2>
+            <p>Ingresar, Modificar, Eliminar e Imprimir pueden habilitarse o deshabilitarse según los permisos del usuario conectado. Un botón deshabilitado indica que la acción no está permitida para ese usuario. Si el usuario no tiene acceso al módulo, el sistema muestra una advertencia y deshabilita todo el formulario.</p>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del código de permisos</strong>
+                <span>Capa Vista → raíz de CapaVista_Navegador → clase Navegador</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/22_permisos_botones.png" alt="Código que relaciona botones con permisos de Seguridad">
+                <figcaption>Mapa de permisos aplicado a Ingresar, Modificar, Eliminar e Imprimir.</figcaption>
+            </figure>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del resultado de los permisos</strong>
+                <span>Vista en ejecución → formulario Form1 → componente Navegador</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/06_crud_cuadricula_2.png" alt="Cinta del Navegador con Eliminar e Imprimir deshabilitados">
+                <figcaption>Ejemplo de botones deshabilitados de acuerdo con los permisos.</figcaption>
+            </figure>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del aviso de acceso denegado</strong>
+                <span>Vista en ejecución → formulario Form1 → validación de acceso al módulo</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/25_acceso_modulo_denegado.png" alt="Mensaje de acceso denegado para un usuario sin permiso sobre el módulo">
+                <figcaption>Advertencia mostrada cuando el usuario conectado no tiene acceso al módulo configurado.</figcaption>
+            </figure>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del formulario sin permisos</strong>
+                <span>Vista en ejecución → formulario Form1 → componente Navegador</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/26_formulario_sin_permisos.png" alt="Formulario CRUD con todos sus controles deshabilitados por falta de acceso al módulo">
+                <figcaption>El formulario completo queda deshabilitado cuando el usuario no tiene acceso al módulo.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>Ayuda e impresión</h2>
+            <p>Ayuda abre el archivo CHM configurado en <code>RutaAyuda</code>. Imprimir todavía no abre un reporte: la versión actual muestra un aviso porque la integración con Reporteador sigue pendiente.</p>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del código de Ayuda</strong>
+                <span>Capa Vista → Formularios → clase FrmNavegadorCrud</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/24_codigo_ayuda.png" alt="Código que valida la ruta y abre el archivo CHM">
+                <figcaption>Validación de RutaAyuda y apertura del archivo con Help.ShowHelp.</figcaption>
+            </figure>
+        </section>
+
+        <div class="navegacion-paginas">
+            <a href="06_crud.html">Anterior</a>
+            <a href="01_cargar_control.html">Volver al inicio</a>
+        </div>
+    </main>
+
+    <footer class="pie">Manual de uso del componente Navegador</footer>
+</body>
+</html>

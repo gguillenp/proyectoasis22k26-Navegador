@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,8 +32,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CapaControlador_Consultas">
+    <Reference Include="CapaControlador_Consultas, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\CapaControlador_Consultas\bin\Debug\CapaControlador_Consultas.dll</HintPath>
+    </Reference>
+    <Reference Include="CapaVista_CbCampos">
+      <HintPath>..\..\Consultas_ComboBoxCampos\CapaVista_CbCampos\bin\Debug\CapaVista_CbCampos.dll</HintPath>
+    </Reference>
+    <Reference Include="CapaVista_Componentes">
+      <HintPath>..\..\Consultas_Componentes\CapaVista_Componentes\bin\Debug\CapaVista_Componentes.dll</HintPath>
+    </Reference>
+    <Reference Include="CapaVista_Mantenimiento">
+      <HintPath>..\..\Consultas_Mantenimiento\CapaVista_Mantenimiento\bin\Debug\CapaVista_Mantenimiento.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -46,89 +57,63 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UserControls\Agrupar&amp;Ordenar.cs">
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Controles\ClsAgregarFiltro.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UserControls\Agrupar&amp;Ordenar.Designer.cs">
-      <DependentUpon>Agrupar&amp;Ordenar.cs</DependentUpon>
+    <Compile Include="Controles\ClsAgregarFiltro.Designer.cs">
+      <DependentUpon>ClsAgregarFiltro.cs</DependentUpon>
     </Compile>
-    <Compile Include="UserControls\BotonesConsulta.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UserControls\BotonesConsulta.Designer.cs">
-      <DependentUpon>BotonesConsulta.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UserControls\CondicionesComparacion.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UserControls\CondicionesComparacion.Designer.cs">
-      <DependentUpon>CondicionesComparacion.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UserControls\CondicionesLogica.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UserControls\CondicionesLogica.Designer.cs">
-      <DependentUpon>CondicionesLogica.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ConsultaCompleja 500 001.cs">
+    <Compile Include="FrmConsultasComplejas.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ConsultaCompleja 500 001.Designer.cs">
-      <DependentUpon>ConsultaCompleja 500 001.cs</DependentUpon>
+    <Compile Include="FrmConsultasComplejas.Designer.cs">
+      <DependentUpon>FrmConsultasComplejas.cs</DependentUpon>
     </Compile>
-    <Compile Include="ConsultaSimple 400 001.cs">
+    <Compile Include="FrmConsultasSimples.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ConsultaSimple 400 001.Designer.cs">
-      <DependentUpon>ConsultaSimple 400 001.cs</DependentUpon>
+    <Compile Include="FrmConsultasSimples.Designer.cs">
+      <DependentUpon>FrmConsultasSimples.cs</DependentUpon>
     </Compile>
-    <Compile Include="UserControls\ConsultasReutilizables.cs">
+    <Compile Include="Controles\ClsSeleccioneUnaConsulta.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UserControls\ConsultasReutilizables.Designer.cs">
-      <DependentUpon>ConsultasReutilizables.cs</DependentUpon>
+    <Compile Include="Controles\ClsSeleccioneUnaConsulta.Designer.cs">
+      <DependentUpon>ClsSeleccioneUnaConsulta.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UserControls\TablaCompleja.cs">
+    <Compile Include="Controles\ClsTabla.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UserControls\TablaCompleja.Designer.cs">
-      <DependentUpon>TablaCompleja.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UserControls\TablaSimple.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UserControls\TablaSimple.Designer.cs">
-      <DependentUpon>TablaSimple.cs</DependentUpon>
+    <Compile Include="Controles\ClsTabla.Designer.cs">
+      <DependentUpon>ClsTabla.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UserControls\Agrupar&amp;Ordenar.resx">
-      <DependentUpon>Agrupar&amp;Ordenar.cs</DependentUpon>
+    <EmbeddedResource Include="Controles\ClsTabla.resx">
+      <DependentUpon>ClsTabla.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ConsultaCompleja 500 001.resx">
-      <DependentUpon>ConsultaCompleja 500 001.cs</DependentUpon>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="ConsultaSimple 400 001.resx">
-      <DependentUpon>ConsultaSimple 400 001.cs</DependentUpon>
+    <EmbeddedResource Include="Controles\ClsAgregarFiltro.resx">
+      <DependentUpon>ClsAgregarFiltro.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UserControls\BotonesConsulta.resx">
-      <DependentUpon>BotonesConsulta.cs</DependentUpon>
+    <EmbeddedResource Include="FrmConsultasComplejas.resx">
+      <DependentUpon>FrmConsultasComplejas.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UserControls\CondicionesComparacion.resx">
-      <DependentUpon>CondicionesComparacion.cs</DependentUpon>
+    <EmbeddedResource Include="FrmConsultasSimples.resx">
+      <DependentUpon>FrmConsultasSimples.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UserControls\CondicionesLogica.resx">
-      <DependentUpon>CondicionesLogica.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UserControls\ConsultasReutilizables.resx">
-      <DependentUpon>ConsultasReutilizables.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UserControls\TablaCompleja.resx">
-      <DependentUpon>TablaCompleja.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UserControls\TablaSimple.resx">
-      <DependentUpon>TablaSimple.cs</DependentUpon>
+    <EmbeddedResource Include="Controles\ClsSeleccioneUnaConsulta.resx">
+      <DependentUpon>ClsSeleccioneUnaConsulta.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

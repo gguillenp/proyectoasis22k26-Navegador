@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script type="text/javascript">
+        document.createElement("header"); document.createElement("nav");
+        document.createElement("main"); document.createElement("section");
+        document.createElement("figure"); document.createElement("figcaption");
+        document.createElement("footer");
+    </script>
+    <title>Cargar el control Navegador</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor">
+            <img class="logo" src="../imagenes/logo_navegador.jpg" alt="Logo del componente Navegador">
+            <h1>Uso del control Navegador</h1>
+            <p>Guía para utilizar el componente dentro de un formulario Windows Forms.</p>
+        </div>
+    </header>
+
+    <nav class="menu">
+        <div class="contenedor">
+            <a class="activo" href="01_cargar_control.html">Cargar control</a>
+            <a href="02_parametros.html">Parámetros</a>
+            <a href="03_tabla.html">Tabla</a>
+            <a href="04_numeros.html">Números</a>
+            <a href="05_base_datos.html">Base de datos</a>
+            <a href="06_crud.html">CRUD</a>
+            <a href="07_botones.html">Botones</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+        <p class="introduccion">El Navegador es una cinta de botones que trabaja junto con un formulario base. El estudiante o programador utiliza ese formulario para obtener la cuadrícula y las operaciones CRUD sin construir cada mantenimiento desde cero.</p>
+
+        <section class="tema">
+            <h2>¿Qué se observa en pantalla?</h2>
+            <p>En la parte superior aparece la cinta del Navegador. Debajo se muestran el formulario dinámico y la cuadrícula cuando el usuario ejecuta una operación como Ingresar, Consultar o Refrescar.</p>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación de la vista general del componente</strong>
+                <span>Vista en ejecución → formulario Form1 → componente FrmNavegadorCrud</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/05_crud_cuadricula.png" alt="Formulario del Navegador con la cinta de botones y la cuadrícula de empleados">
+                <figcaption>Vista general del componente Navegador con la cuadrícula cargada.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>¿Cómo se utiliza desde el formulario?</h2>
+            <p>El formulario del mantenimiento hereda de <code>FrmNavegadorCrud</code>. De esta manera recibe el control y la lógica CRUD que ya están preparados.</p>
+
+            <ol class="pasos">
+                <li>Declarar el formulario como una clase derivada de <code>FrmNavegadorCrud</code>.</li>
+                <li>Ejecutar <code>InitializeComponent()</code> dentro del constructor.</li>
+                <li>Configurar la tabla, el código de aplicación y la ruta de ayuda.</li>
+            </ol>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación de la configuración del formulario</strong>
+                <span>Proyecto de ejecución → carpeta Ejecucion_Navegador → clase Form1</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/01_formulario_configuracion.png" alt="Código de Form1 heredando de FrmNavegadorCrud y configurando el Navegador">
+                <figcaption>El formulario hereda de FrmNavegadorCrud y configura el mantenimiento en el constructor.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>¿Dónde se encuentra el control?</h2>
+            <p>El formulario base ya crea una instancia de <code>Navegador</code> y la agrega a sus controles. Por esta razón, agregar otro Navegador manualmente produciría una cinta duplicada.</p>
+
+        </section>
+
+        <div class="navegacion-paginas">
+            <a href="02_parametros.html">Siguiente: Parámetros</a>
+        </div>
+    </main>
+
+    <footer class="pie">Manual de uso del componente Navegador</footer>
+</body>
+</html>

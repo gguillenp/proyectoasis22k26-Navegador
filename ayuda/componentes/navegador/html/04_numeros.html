@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script type="text/javascript">
+        document.createElement("header"); document.createElement("nav");
+        document.createElement("main"); document.createElement("section");
+        document.createElement("figure"); document.createElement("figcaption");
+        document.createElement("footer");
+    </script>
+    <title>Campos numéricos</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor">
+            <img class="logo" src="../imagenes/logo_navegador.jpg" alt="Logo del componente Navegador">
+            <h1>Campos numéricos</h1>
+            <p>Guía para utilizar campos numéricos dentro del CRUD.</p>
+        </div>
+    </header>
+
+    <nav class="menu">
+        <div class="contenedor">
+            <a href="01_cargar_control.html">Cargar control</a>
+            <a href="02_parametros.html">Parámetros</a>
+            <a href="03_tabla.html">Tabla</a>
+            <a class="activo" href="04_numeros.html">Números</a>
+            <a href="05_base_datos.html">Base de datos</a>
+            <a href="06_crud.html">CRUD</a>
+            <a href="07_botones.html">Botones</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+        <p class="introduccion">Los campos numéricos necesitan un tratamiento diferente de los campos de texto. El componente ya reconoce tipos enteros y decimales, aunque su conexión con el formulario dinámico todavía debe completarse.</p>
+
+        <section class="tema">
+            <h2>¿Cómo reconoce un campo numérico?</h2>
+            <p><code>NavegadorFuncEsNumerico</code> revisa el tipo .NET y el tipo informado por la base de datos. Reconoce enteros, decimales, flotantes y otros tipos equivalentes.</p>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación de la detección de campos numéricos</strong>
+                <span>Capa Vista → Utilidades → clase ClsTipoColumna</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/07_detector_numerico.png" alt="Método que identifica columnas de tipos numéricos">
+                <figcaption>Tipos numéricos reconocidos por NavegadorFuncEsNumerico.</figcaption>
+            </figure>
+
+            <div class="estado-actual"><strong>Estado actual:</strong> esta función todavía no es llamada por <code>ClsCrudFormulario</code>. Los campos numéricos se crean como cuadros de texto normales, por lo que la restricción de letras aún está pendiente de integración.</div>
+        </section>
+
+        <section class="tema">
+            <h2>Llaves numéricas automáticas</h2>
+            <p>Cuando una columna es autoincremental, el formulario muestra el texto “automático”, bloquea el campo y omite ese valor al guardar. La base de datos asigna el identificador del nuevo registro.</p>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del bloqueo de llaves</strong>
+                <span>Capa Vista → Componente → clase ClsCrudFormulario</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/08_autoincremento.png" alt="Código que bloquea una llave autoincremental en el formulario">
+                <figcaption>Tratamiento de llaves autoincrementales y llaves primarias en modificación.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>¿Cómo lo utilizará el usuario?</h2>
+            <ol class="pasos">
+                <li>Abrir el formulario con Ingresar o Modificar.</li>
+                <li>Completar los campos numéricos respetando el tipo de la columna.</li>
+                <li>No modificar los campos marcados como automáticos.</li>
+                <li>Guardar y comprobar el resultado en la cuadrícula.</li>
+            </ol>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del formulario generado</strong>
+                <span>Vista en ejecución → formulario Form1 → tabla tblempleado</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/09_formulario_nuevo.png" alt="Formulario dinámico para ingresar un empleado">
+                <figcaption>Formulario generado a partir de las columnas de tblempleado.</figcaption>
+            </figure>
+        </section>
+
+        <div class="navegacion-paginas">
+            <a href="03_tabla.html">Anterior</a>
+            <a href="05_base_datos.html">Siguiente: Base de datos</a>
+        </div>
+    </main>
+
+    <footer class="pie">Manual de uso del componente Navegador</footer>
+</body>
+</html>

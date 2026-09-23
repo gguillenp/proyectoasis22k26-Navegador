@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script type="text/javascript">
+        document.createElement("header"); document.createElement("nav");
+        document.createElement("main"); document.createElement("section");
+        document.createElement("figure"); document.createElement("figcaption");
+        document.createElement("footer");
+    </script>
+    <title>Parámetros del Navegador</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor">
+            <img class="logo" src="../imagenes/logo_navegador.jpg" alt="Logo del componente Navegador">
+            <h1>Parámetros del Navegador</h1>
+            <p>Guía para configurar el mantenimiento desde el código del formulario.</p>
+        </div>
+    </header>
+
+    <nav class="menu">
+        <div class="contenedor">
+            <a href="01_cargar_control.html">Cargar control</a>
+            <a class="activo" href="02_parametros.html">Parámetros</a>
+            <a href="03_tabla.html">Tabla</a>
+            <a href="04_numeros.html">Números</a>
+            <a href="05_base_datos.html">Base de datos</a>
+            <a href="06_crud.html">CRUD</a>
+            <a href="07_botones.html">Botones</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+        <p class="introduccion">La configuración conecta un formulario específico con una tabla, sus permisos y su archivo de ayuda. El programador proporciona solamente estos tres valores; el resto del funcionamiento permanece dentro del componente.</p>
+
+        <section class="tema">
+            <h2>Los tres parámetros</h2>
+            <ul>
+                <li><strong>Tabla:</strong> nombre exacto de la tabla administrada por el CRUD.</li>
+                <li><strong>Código de aplicación:</strong> número utilizado por Seguridad para consultar los permisos.</li>
+                <li><strong>Ruta de ayuda:</strong> ubicación del archivo CHM correspondiente al mantenimiento.</li>
+            </ul>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del método de configuración</strong>
+                <span>Capa Vista → Formularios → clase FrmNavegadorCrud</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/02_metodo_configuracion.png" alt="Método NavegadorMetConfigurar y propiedad RutaAyuda">
+                <figcaption>Método que recibe la tabla, el código de aplicación y la ruta de ayuda.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>¿Cómo se configuran?</h2>
+            <p>La llamada se coloca después de <code>InitializeComponent()</code>. Los valores deben pertenecer al mismo mantenimiento; por ejemplo, una tabla de empleados debe utilizar el código y la ayuda preparados para empleados.</p>
+
+            <ol class="pasos">
+                <li>Escribir el nombre exacto de la tabla.</li>
+                <li>Asignar el código entregado por el sistema de Seguridad.</li>
+                <li>Indicar la ruta del CHM que se copiará junto con la aplicación.</li>
+            </ol>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación de la llamada de configuración</strong>
+                <span>Proyecto de ejecución → carpeta Ejecucion_Navegador → clase Form1</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/01_formulario_configuracion.png" alt="Llamada a NavegadorMetConfigurar dentro del constructor de Form1">
+                <figcaption>Ejemplo de configuración desde el formulario consumidor.</figcaption>
+            </figure>
+
+            <div class="nota">Antes de tomar la captura, conviene corregir el ejemplo actual: utiliza la tabla <code>tblempleado</code>, pero la ruta todavía señala <code>tblaplicacion.chm</code>.</div>
+        </section>
+
+        <div class="navegacion-paginas">
+            <a href="01_cargar_control.html">Anterior</a>
+            <a href="03_tabla.html">Siguiente: Tabla</a>
+        </div>
+    </main>
+
+    <footer class="pie">Manual de uso del componente Navegador</footer>
+</body>
+</html>

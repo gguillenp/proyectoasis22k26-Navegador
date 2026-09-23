@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script type="text/javascript">
+        document.createElement("header"); document.createElement("nav");
+        document.createElement("main"); document.createElement("section");
+        document.createElement("figure"); document.createElement("figcaption");
+        document.createElement("footer");
+    </script>
+    <title>Preparar la tabla</title>
+    <link rel="stylesheet" href="../css/estilos.css">
+</head>
+<body>
+    <header class="encabezado">
+        <div class="contenedor">
+            <img class="logo" src="../imagenes/logo_navegador.jpg" alt="Logo del componente Navegador">
+            <h1>Preparar la tabla</h1>
+            <p>Guía para comprender cómo la tabla define el mantenimiento.</p>
+        </div>
+    </header>
+
+    <nav class="menu">
+        <div class="contenedor">
+            <a href="01_cargar_control.html">Cargar control</a>
+            <a href="02_parametros.html">Parámetros</a>
+            <a class="activo" href="03_tabla.html">Tabla</a>
+            <a href="04_numeros.html">Números</a>
+            <a href="05_base_datos.html">Base de datos</a>
+            <a href="06_crud.html">CRUD</a>
+            <a href="07_botones.html">Botones</a>
+        </div>
+    </nav>
+
+    <main class="contenedor">
+        <p class="introduccion">La tabla permite al Navegador construir el mantenimiento. A partir de sus columnas, llaves y tipos de datos se generan la cuadrícula y los campos utilizados para ingresar o modificar información.</p>
+
+        <section class="tema">
+            <h2>¿Cómo recibe la tabla?</h2>
+            <p>La propiedad <code>NombreTabla</code> guarda el nombre enviado por el formulario. Si el valor cambia mientras el componente está activo, el coordinador actualiza la tabla y vuelve a consultar la información.</p>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación de la propiedad NombreTabla</strong>
+                <span>Capa Vista → Formularios → clase FrmNavegadorCrud</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/03_propiedad_nombre_tabla.png" alt="Propiedad NombreTabla del formulario Navegador">
+                <figcaption>La propiedad valida el nombre, actualiza el Navegador y vuelve a consultar los datos.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>¿Qué información lee del esquema?</h2>
+            <p>El modelo reconoce la llave primaria, las llaves foráneas, el tipo de dato, si el campo acepta valores vacíos y si es autoincremental. Esta información se almacena en objetos <code>ClsColumnaInfo</code>.</p>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación de la lectura del esquema</strong>
+                <span>Capa Modelo → Esquema → clase ClsEsquema</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/04_lectura_esquema.png" alt="Código que obtiene las columnas, llaves y tipos de datos de la tabla">
+                <figcaption>Lectura del esquema y creación de la información utilizada por el CRUD.</figcaption>
+            </figure>
+        </section>
+
+        <section class="tema">
+            <h2>¿Qué verá el usuario?</h2>
+            <p>Cuando se utiliza Consultar o Refrescar, el Navegador llena la cuadrícula con los datos de la tabla. Cada fila representa un registro y puede seleccionarse para modificarlo, eliminarlo o recorrerlo.</p>
+
+            <div class="ubicacion-codigo">
+                <strong>Ubicación del resultado de la consulta</strong>
+                <span>Vista en ejecución → formulario Form1 → tabla tblempleado</span>
+            </div>
+
+            <figure class="imagen-manual">
+                <img src="../imagenes/manual/06_crud_cuadricula_2.png" alt="Cuadrícula del CRUD con registros de empleados y una fila seleccionada">
+                <figcaption>Resultado de consultar la tabla de empleados.</figcaption>
+            </figure>
+        </section>
+
+        <div class="navegacion-paginas">
+            <a href="02_parametros.html">Anterior</a>
+            <a href="04_numeros.html">Siguiente: Números</a>
+        </div>
+    </main>
+
+    <footer class="pie">Manual de uso del componente Navegador</footer>
+</body>
+</html>
