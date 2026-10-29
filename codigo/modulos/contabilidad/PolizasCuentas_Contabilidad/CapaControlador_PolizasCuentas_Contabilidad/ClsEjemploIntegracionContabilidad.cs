@@ -11,7 +11,7 @@
  * Reglas especificas:
  *  Los datos van fijos para el ejemplo. La compra de materia prima al
  *  crédito carga Inventario de Materias Primas e IVA Acreditable y
- *  abona Proveedores Nacionales.
+ *  abona Proveedores Nacionales. El 1 es el país (Guatemala).
  * ===================================================================
 */
 
@@ -27,7 +27,7 @@ namespace EjemploIntegracion
 
         public List<ClsModeloCuentaPolizaContabilidad> ContabilidadFuncCuentasCompras()
         {
-            return _Contabilidad.ContabilidadFuncCuentasPermitidas("MOD-COMPR");
+            return _Contabilidad.ContabilidadFuncCuentasPermitidas("MOD-COMPR", 1);
         }
 
         public bool ContabilidadFuncEnviarPolizaCompra(out string CodigoPoliza, out string Estado, out string Mensaje)
@@ -38,7 +38,7 @@ namespace EjemploIntegracion
                 new ClsModeloLineaIntegracionContabilidad { CodigoCuenta = "1.01.07.001", Debe = 1200.00m, Descripcion = "IVA de la compra" },
                 new ClsModeloLineaIntegracionContabilidad { CodigoCuenta = "2.01.01.001", Haber = 11200.00m, Descripcion = "Por pagar a Carnes del Valle" }
             };
-            return _Contabilidad.ContabilidadFuncRecibirPoliza("MOD-COMPR", "OC-2026-0045", new DateTime(2026, 10, 27),
+            return _Contabilidad.ContabilidadFuncRecibirPoliza("MOD-COMPR", 1, "OC-2026-0045", new DateTime(2026, 10, 27),
                 "Compra de materia prima al crédito, orden OC-2026-0045", Lineas, out CodigoPoliza, out Estado, out Mensaje);
         }
     }

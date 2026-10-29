@@ -32,6 +32,9 @@ namespace CapaModelo_Contabilidad.Repositorios
         private const string _SelectCuentasPermitidas =
             "SELECT DISTINCT c.idCuenta, c.codigoCuenta, c.nombreCuenta, c.tipoCuenta FROM tblModuloCuentaPais mc " +
             "INNER JOIN tblCuenta c ON c.idCuenta = mc.idCuenta WHERE mc.idModuloContable = ? AND mc.is_active = TRUE " +
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            "AND (? = 0 OR mc.idPais = ?) " +
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             "AND c.is_active = TRUE AND c.clasificacionCuenta = 'DETALLE' ORDER BY c.codigoCuenta";
 
         private const string _SelectPorDocumento =
@@ -52,11 +55,13 @@ namespace CapaModelo_Contabilidad.Repositorios
             }
         }
 
-        public List<ClsCuentaContabilidad> ContabilidadFuncObtenerCuentasPermitidas(int IdModulo)
+        // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+        public List<ClsCuentaContabilidad> ContabilidadFuncObtenerCuentasPermitidas(int IdModulo, int IdPais)
         {
             List<ClsCuentaContabilidad> Cuentas = new List<ClsCuentaContabilidad>();
             using (DataTable Tabla = ContabilidadFuncEjecutarConsulta(_SelectCuentasPermitidas, CommandType.Text,
-                new List<OdbcParameter> { new OdbcParameter("Modulo", IdModulo) }))
+                new List<OdbcParameter> { new OdbcParameter("Modulo", IdModulo), new OdbcParameter("Pais", IdPais), new OdbcParameter("PaisFiltro", IdPais) }))
+        // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                 foreach (DataRow Fila in Tabla.Rows)
                     Cuentas.Add(new ClsCuentaContabilidad
                     {

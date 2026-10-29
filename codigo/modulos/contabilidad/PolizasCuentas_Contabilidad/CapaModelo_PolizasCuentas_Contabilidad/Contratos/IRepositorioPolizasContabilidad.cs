@@ -36,5 +36,9 @@ namespace CapaModelo_Contabilidad.Contratos
 
         string ContabilidadFuncObtenerMetodoActualizacion(int IdModulo);
         // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026
+
+        // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+        Dictionary<int, string> ContabilidadFuncObtenerPaises();
+        // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
     }
 }

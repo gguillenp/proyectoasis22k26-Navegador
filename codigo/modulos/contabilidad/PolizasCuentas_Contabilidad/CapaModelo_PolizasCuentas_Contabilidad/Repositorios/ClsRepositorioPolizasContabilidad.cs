@@ -38,6 +38,9 @@ namespace CapaModelo_Contabilidad.Repositorios
         private const string _SelectTodos =
             "SELECT pe.idPolizaEncabezado, pe.codigoPolizaEncabezado, pe.fechaPolizaEncabezado, pe.periodoContablePolizaEncabezado, " +
             "pe.estadoPolizaEncabezado, pe.idModuloContable, m.nombreModuloContable, pe.documentoOrigenPolizaEncabezado, pe.descripcionPolizaEncabezado, " +
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            "pe.idPais, " +
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             "pd.idPolizaDetalle, pd.idCuenta, pd.lineaPolizaDetalle, pd.debePolizaDetalle, pd.haberPolizaDetalle, pd.descripcionPolizaDetalle, " +
             "c.codigoCuenta, c.nombreCuenta " +
             "FROM tblPolizaEncabezado pe " +
@@ -55,7 +58,7 @@ namespace CapaModelo_Contabilidad.Repositorios
         private const string _InsertEncabezado =
             "INSERT INTO tblPolizaEncabezado (idModuloContable, idPais, codigoPolizaEncabezado, fechaPolizaEncabezado, periodoContablePolizaEncabezado, " +
             "estadoPolizaEncabezado, documentoOrigenPolizaEncabezado, descripcionPolizaEncabezado) " +
-            "VALUES (?, COALESCE((SELECT MIN(mcp.idPais) FROM tblModuloCuentaPais mcp WHERE mcp.idModuloContable = ?), 1), ?, ?, ?, ?, ?, ?)";
+            "VALUES (?, COALESCE(NULLIF(?, 0), (SELECT MIN(mcp.idPais) FROM tblModuloCuentaPais mcp WHERE mcp.idModuloContable = ?), 1), ?, ?, ?, ?, ?, ?)";
         // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
 
         private const string _InsertDetalle =
@@ -65,6 +68,11 @@ namespace CapaModelo_Contabilidad.Repositorios
         private const string _UpdateEncabezado =
             // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026
             "UPDATE tblPolizaEncabezado SET fechaPolizaEncabezado = ?, estadoPolizaEncabezado = ?, descripcionPolizaEncabezado = ? " +
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            ", idPais = COALESCE(NULLIF(?, 0), idPais) " +
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026
             "WHERE idPolizaEncabezado = ? AND estadoPolizaEncabezado = 'BORRADOR' AND periodoContablePolizaEncabezado = ?";
 
         private const string _DesactivarDetalle =
@@ -179,6 +187,7 @@ namespace CapaModelo_Contabilidad.Repositorios
                         {
                             Comando.Parameters.AddWithValue("Modulo", Entidad.IdModulo);
                             // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                            Comando.Parameters.AddWithValue("Pais", Entidad.IdPais);
                             Comando.Parameters.AddWithValue("ModuloPais", Entidad.IdModulo);
                             // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                             Comando.Parameters.AddWithValue("Codigo", Codigo);
@@ -241,6 +250,9 @@ namespace CapaModelo_Contabilidad.Repositorios
                             Comando.Parameters.Add(new OdbcParameter("Fecha", OdbcType.Date) { Value = Entidad.Fecha.Date });
                             Comando.Parameters.AddWithValue("Estado", Entidad.Estado);
                             Comando.Parameters.AddWithValue("Descripcion", string.IsNullOrWhiteSpace(Entidad.Descripcion) ? (object)DBNull.Value : Entidad.Descripcion);
+                            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                            Comando.Parameters.AddWithValue("Pais", Entidad.IdPais);
+                            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                             Comando.Parameters.AddWithValue("Poliza", Entidad.IdPoliza);
                             Comando.Parameters.AddWithValue("Periodo", Entidad.PeriodoContable);
                             Filas = Comando.ExecuteNonQuery();
@@ -444,6 +456,9 @@ namespace CapaModelo_Contabilidad.Repositorios
                             Estado = Convert.ToString(Fila["estadoPolizaEncabezado"]),
                             IdModulo = Convert.ToInt32(Fila["idModuloContable"]),
                             Modulo = Convert.ToString(Fila["nombreModuloContable"]),
+                            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                            IdPais = Convert.ToInt32(Fila["idPais"]),
+                            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                             DocumentoOrigen = Fila["documentoOrigenPolizaEncabezado"] == DBNull.Value ? null : Convert.ToString(Fila["documentoOrigenPolizaEncabezado"]),
                             Descripcion = Fila["descripcionPolizaEncabezado"] == DBNull.Value ? null : Convert.ToString(Fila["descripcionPolizaEncabezado"])
                         };
@@ -477,6 +492,16 @@ namespace CapaModelo_Contabilidad.Repositorios
         {
             return new[] { "BORRADOR", "VALIDADA", "ANULADA" };
         }
+
+        // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+        public Dictionary<int, string> ContabilidadFuncObtenerPaises()
+        {
+            Dictionary<int, string> Paises = new Dictionary<int, string>();
+            using (DataTable Tabla = ContabilidadFuncEjecutarConsulta("SELECT idPais, nombrePais FROM tblPais WHERE is_active = TRUE ORDER BY idPais", CommandType.Text))
+                foreach (DataRow Fila in Tabla.Rows) Paises[Convert.ToInt32(Fila[0])] = Convert.ToString(Fila[1]);
+            return Paises;
+        }
+        // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
 
         public string ContabilidadFuncObtenerNombreModulo(int IdModulo)
         {

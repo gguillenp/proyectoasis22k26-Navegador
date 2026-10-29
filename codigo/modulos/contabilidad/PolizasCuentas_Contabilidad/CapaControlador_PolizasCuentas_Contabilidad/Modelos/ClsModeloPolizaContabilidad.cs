@@ -44,6 +44,10 @@ namespace CapaControlador_Contabilidad
 
         public string Modulo { get; set; }
 
+        // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+        public int IdPais { get; set; }
+        // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+
         // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026
         public string ModoActualizacion { get; set; } = "BATCH";
         // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026

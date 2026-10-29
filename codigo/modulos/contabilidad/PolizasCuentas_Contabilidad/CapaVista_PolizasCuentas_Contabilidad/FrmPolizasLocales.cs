@@ -159,6 +159,18 @@ namespace CapaVista_Contabilidad
             // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026
             ContabilidadCboOrigen.DataSource = new[] { _Controlador.ContabilidadFuncObtenerNombreModulo(_IdModulo) };
             ContabilidadCboOrigen.Enabled = false;
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            ContabilidadCboPais.DisplayMember = "Value";
+            ContabilidadCboPais.ValueMember = "Key";
+            try
+            {
+                ContabilidadCboPais.DataSource = _Controlador.ContabilidadFuncObtenerPaises();
+            }
+            catch (Exception Excepcion)
+            {
+                ClsDialogosContabilidad.ContabilidadMetError(this, "No se pudieron cargar los países: " + Excepcion.Message);
+            }
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
         }
 
         private void ContabilidadMetActualizarPeriodo(object Remitente, EventArgs Argumentos)
@@ -315,6 +327,9 @@ namespace CapaVista_Contabilidad
             ContabilidadDtpFecha.Value = DateTime.Today;
             ContabilidadMetActualizarPeriodo(this, EventArgs.Empty);
             ContabilidadCboEstado.SelectedItem = "BORRADOR";
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            if (ContabilidadCboPais.Items.Count > 0) ContabilidadCboPais.SelectedIndex = 0;
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             ContabilidadTxtDescripcion.Clear();
             ContabilidadCboCuenta.SelectedIndex = -1;
             ContabilidadCboCuenta.Text = string.Empty;
@@ -357,6 +372,9 @@ namespace CapaVista_Contabilidad
             ContabilidadDtpFecha.Value = Poliza.Fecha;
             ContabilidadTxtPeriodo.Text = Poliza.Periodo;
             ContabilidadCboEstado.SelectedItem = Poliza.Estado;
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            ContabilidadCboPais.SelectedValue = Poliza.IdPais;
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             ContabilidadTxtDescripcion.Text = Poliza.Descripcion;
             ContabilidadMetActualizarVista();
         }
@@ -376,6 +394,9 @@ namespace CapaVista_Contabilidad
 
             ContabilidadTxtDescripcion.ReadOnly = !_Editando;
             ContabilidadDtpFecha.Enabled = _Editando;
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            ContabilidadCboPais.Enabled = _Editando;
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             ContabilidadCboCuenta.Enabled = _Editando;
             ContabilidadBtnAgregar.Enabled = _Editando;
             ContabilidadDgvDetalle.ReadOnly = !_Editando;
@@ -490,6 +511,9 @@ namespace CapaVista_Contabilidad
                 Fecha = ContabilidadDtpFecha.Value.Date,
                 Estado = Estado,
                 IdModulo = _IdModulo,
+                // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                IdPais = ContabilidadCboPais.SelectedValue == null ? 0 : (int)ContabilidadCboPais.SelectedValue,
+                // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                 // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026
                 ModoActualizacion = _ModoActualizacion,
                 // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026

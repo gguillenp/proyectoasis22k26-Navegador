@@ -42,9 +42,17 @@ namespace CapaControlador_Contabilidad
             _Polizas = Polizas;
         }
 
+        // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
         public bool ContabilidadFuncRecibirPoliza(string CodigoModulo, string DocumentoOrigen, DateTime Fecha, string Descripcion,
             List<ClsModeloLineaIntegracionContabilidad> Lineas, out string CodigoPoliza, out string Estado, out string Mensaje)
         {
+            return ContabilidadFuncRecibirPoliza(CodigoModulo, 0, DocumentoOrigen, Fecha, Descripcion, Lineas, out CodigoPoliza, out Estado, out Mensaje);
+        }
+
+        public bool ContabilidadFuncRecibirPoliza(string CodigoModulo, int IdPais, string DocumentoOrigen, DateTime Fecha, string Descripcion,
+            List<ClsModeloLineaIntegracionContabilidad> Lineas, out string CodigoPoliza, out string Estado, out string Mensaje)
+        {
+        // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             CodigoPoliza = string.Empty;
             Estado = string.Empty;
             try
@@ -63,18 +71,29 @@ namespace CapaControlador_Contabilidad
                     return false;
                 }
                 if (ContabilidadFuncYaRecibida(IdModulo, Documento, out CodigoPoliza, out Estado, out Mensaje, out bool Aceptada)) return Aceptada;
+                // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                if (IdPais != 0 && !_Polizas.ContabilidadFuncObtenerPaises().ContainsKey(IdPais))
+                {
+                    Mensaje = "El país " + IdPais + " no existe o está inactivo en Contabilidad.";
+                    return false;
+                }
+                // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                 if (Descripcion != null && Descripcion.Trim().Length > 255)
                 {
                     Mensaje = "La descripción admite hasta 255 caracteres.";
                     return false;
                 }
 
-                Mensaje = ContabilidadFuncValidarLineas(IdModulo, CodigoModulo, Lineas, out List<ClsPolizaDetalleContabilidad> Detalle);
+                // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                Mensaje = ContabilidadFuncValidarLineas(IdModulo, IdPais, CodigoModulo, Lineas, out List<ClsPolizaDetalleContabilidad> Detalle);
+                // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                 if (Mensaje != string.Empty) return false;
 
                 ClsPolizaContabilidad Poliza = new ClsPolizaContabilidad
                 {
-                    Fecha = Fecha.Date, Estado = "VALIDADA", IdModulo = IdModulo, DocumentoOrigen = Documento,
+                    // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                    Fecha = Fecha.Date, Estado = "VALIDADA", IdModulo = IdModulo, IdPais = IdPais, DocumentoOrigen = Documento,
+                    // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                     Descripcion = string.IsNullOrWhiteSpace(Descripcion) ? null : Descripcion.Trim(), Detalle = Detalle
                 };
                 try
@@ -115,13 +134,22 @@ namespace CapaControlador_Contabilidad
             }
         }
 
+        // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
         public List<ClsModeloCuentaPolizaContabilidad> ContabilidadFuncCuentasPermitidas(string CodigoModulo)
         {
+            return ContabilidadFuncCuentasPermitidas(CodigoModulo, 0);
+        }
+
+        public List<ClsModeloCuentaPolizaContabilidad> ContabilidadFuncCuentasPermitidas(string CodigoModulo, int IdPais)
+        {
+        // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             int IdModulo;
             string Metodo;
             if (!_Integracion.ContabilidadFuncObtenerModulo((CodigoModulo ?? string.Empty).Trim(), out IdModulo, out Metodo))
                 return new List<ClsModeloCuentaPolizaContabilidad>();
-            return _Integracion.ContabilidadFuncObtenerCuentasPermitidas(IdModulo)
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            return _Integracion.ContabilidadFuncObtenerCuentasPermitidas(IdModulo, IdPais)
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                 .Select(Cuenta => new ClsModeloCuentaPolizaContabilidad { IdCuenta = Cuenta.IdCuenta, Codigo = Cuenta.Codigo, Nombre = Cuenta.Nombre })
                 .ToList();
         }
@@ -157,18 +185,25 @@ namespace CapaControlador_Contabilidad
             return true;
         }
 
-        private string ContabilidadFuncValidarLineas(int IdModulo, string CodigoModulo, List<ClsModeloLineaIntegracionContabilidad> Lineas,
+        // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+        private string ContabilidadFuncValidarLineas(int IdModulo, int IdPais, string CodigoModulo, List<ClsModeloLineaIntegracionContabilidad> Lineas,
+        // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             out List<ClsPolizaDetalleContabilidad> Detalle)
         {
             Detalle = new List<ClsPolizaDetalleContabilidad>();
             if (Lineas == null || Lineas.Count < 2) return "La póliza necesita al menos dos líneas.";
-            Dictionary<string, ClsCuentaContabilidad> Permitidas = _Integracion.ContabilidadFuncObtenerCuentasPermitidas(IdModulo)
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            Dictionary<string, ClsCuentaContabilidad> Permitidas = _Integracion.ContabilidadFuncObtenerCuentasPermitidas(IdModulo, IdPais)
                 .ToDictionary(Cuenta => Cuenta.Codigo);
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             foreach (ClsModeloLineaIntegracionContabilidad Linea in Lineas)
             {
                 string Codigo = (Linea.CodigoCuenta ?? string.Empty).Trim();
                 if (!Permitidas.ContainsKey(Codigo))
-                    return "La cuenta " + Codigo + " no está asignada al módulo " + CodigoModulo + " o no es una cuenta de detalle.";
+                    // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                    return "La cuenta " + Codigo + " no está asignada al módulo " + CodigoModulo + (IdPais == 0 ? string.Empty : " en ese país")
+                        + " o no es una cuenta de detalle.";
+                    // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                 if (Linea.Debe < 0m || Linea.Haber < 0m || (Linea.Debe > 0m) == (Linea.Haber > 0m))
                     return "La línea de la cuenta " + Codigo + " debe llevar un monto en el debe o en el haber, no en ambos.";
                 if (Linea.Debe > ClsLimitesContabilidad.MaximoMonetario || Linea.Haber > ClsLimitesContabilidad.MaximoMonetario)

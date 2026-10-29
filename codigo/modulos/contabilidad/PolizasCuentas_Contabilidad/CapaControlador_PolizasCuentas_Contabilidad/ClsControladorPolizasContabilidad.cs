@@ -52,6 +52,13 @@ namespace CapaControlador_Contabilidad
                 .ToList();
         }
 
+        // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+        public List<KeyValuePair<int, string>> ContabilidadFuncObtenerPaises()
+        {
+            return _Repositorio.ContabilidadFuncObtenerPaises().ToList();
+        }
+        // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+
         public string ContabilidadFuncObtenerNombreModulo(int IdModulo)
         {
             string Nombre = _Repositorio.ContabilidadFuncObtenerNombreModulo(IdModulo);
@@ -105,6 +112,9 @@ namespace CapaControlador_Contabilidad
                 {
                     IdPoliza = Poliza.IdPoliza, CodigoPoliza = Poliza.CodigoPoliza, Fecha = Poliza.Fecha,
                     Periodo = Poliza.PeriodoContable, Estado = Poliza.Estado, IdModulo = Poliza.IdModulo, Modulo = Poliza.Modulo, Descripcion = Poliza.Descripcion,
+                    // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                    IdPais = Poliza.IdPais,
+                    // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                     // Inicio de cambio: Mario Taracena - 0901-23-9335 - 27/10/2026
                     Lineas = Poliza.Detalle.Select(Detalle => new ClsModeloLineaPolizaContabilidad
                     // Fin de cambio: Mario Taracena - 0901-23-9335 - 27/10/2026
@@ -238,6 +248,9 @@ namespace CapaControlador_Contabilidad
             ClsPolizaContabilidad Entidad = new ClsPolizaContabilidad
             {
                 IdPoliza = Modelo.IdPoliza, Fecha = Modelo.Fecha.Date, Estado = EstadoPoliza, IdModulo = Modelo.IdModulo,
+                // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                IdPais = Modelo.IdPais,
+                // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                 PeriodoContable = ContabilidadFuncObtenerPeriodo(Modelo.Fecha), Descripcion = Modelo.Descripcion.Trim(),
                 Detalle = Modelo.Lineas.Select(Linea => new ClsPolizaDetalleContabilidad
                     { IdCuenta = Linea.IdCuenta, Cuenta = Linea.Cuenta, Debe = Linea.Debe, Haber = Linea.Haber }).ToList()
