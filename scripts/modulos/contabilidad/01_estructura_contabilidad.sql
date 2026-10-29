@@ -380,3 +380,15 @@ ALTER TABLE tblActivoFijo
     ADD COLUMN fechaEnvioLogisticaActivoFijo DATETIME NULL AFTER referenciaLogisticaActivoFijo,
     ADD CONSTRAINT ckActivoFijoEnvioLogistica CHECK (estadoEnvioLogisticaActivoFijo IN ('PENDIENTE','ENVIADO'));
 -- Fin de cambio: Dylan Hernández - 0901-23-519 - 28/10/2026
+
+-- Inicio de cambio: Dylan Hernández - 0901-23-519 - 29/10/2026
+ALTER TABLE tblPais
+    ADD COLUMN codigoMonedaPais CHAR(3) NOT NULL DEFAULT 'GTQ' AFTER nombrePais;
+
+UPDATE tblPais SET codigoMonedaPais = CASE nombrePais WHEN 'El Salvador' THEN 'USD' WHEN 'Honduras' THEN 'HNL' ELSE 'GTQ' END
+WHERE idPais > 0;
+
+ALTER TABLE tblPolizaEncabezado
+    ADD COLUMN idPais INT NOT NULL DEFAULT 1 AFTER idModuloContable,
+    ADD CONSTRAINT Fk_PolizaEncabezado_Pais FOREIGN KEY (idPais) REFERENCES tblPais (idPais) ON DELETE RESTRICT ON UPDATE CASCADE;
+-- Fin de cambio: Dylan Hernández - 0901-23-519 - 29/10/2026

@@ -9,10 +9,12 @@ USE dbContabilidad;
 --  1. DATOS DE CATÁLOGOS
 -- =============================================================================
 
-INSERT INTO tblPais (idPais, nombrePais) VALUES
-(1, 'Guatemala'),
-(2, 'El Salvador'),
-(3, 'Honduras');
+-- Inicio de cambio: Dylan Hernández - 0901-23-519 - 29/10/2026
+INSERT INTO tblPais (idPais, nombrePais, codigoMonedaPais) VALUES
+(1, 'Guatemala',   'GTQ'),
+(2, 'El Salvador', 'USD'),
+(3, 'Honduras',    'HNL');
+-- Fin de cambio: Dylan Hernández - 0901-23-519 - 29/10/2026
 
 INSERT INTO tblModuloContable (idModuloContable, nombreModuloContable, codigoModuloContable) VALUES
 (1, 'Contabilidad',    'MOD-CONTA'),

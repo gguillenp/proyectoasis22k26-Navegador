@@ -14,7 +14,8 @@
  *  tablas de EST-01. El código POL-AAAA-MM-#### se genera aquí con el
  *  correlativo del período, dentro de la transacción. Solo una póliza
  *  en BORRADOR se modifica y una APLICADA no se anula. Eliminar es baja
- *  lógica: nunca se usa DELETE.
+ *  lógica: nunca se usa DELETE. El país de la póliza se toma de las
+ *  cuentas asignadas a su módulo; si no tiene, queda Guatemala.
  * ===================================================================
 */
 
@@ -50,9 +51,12 @@ namespace CapaModelo_Contabilidad.Repositorios
             "SELECT COALESCE(MAX(CAST(SUBSTRING(codigoPolizaEncabezado, 13) AS UNSIGNED)), 0) + 1 FROM tblPolizaEncabezado " +
             "WHERE periodoContablePolizaEncabezado = ? AND codigoPolizaEncabezado LIKE 'POL-%' FOR UPDATE";
 
+        // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
         private const string _InsertEncabezado =
-            "INSERT INTO tblPolizaEncabezado (idModuloContable, codigoPolizaEncabezado, fechaPolizaEncabezado, periodoContablePolizaEncabezado, " +
-            "estadoPolizaEncabezado, documentoOrigenPolizaEncabezado, descripcionPolizaEncabezado) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            "INSERT INTO tblPolizaEncabezado (idModuloContable, idPais, codigoPolizaEncabezado, fechaPolizaEncabezado, periodoContablePolizaEncabezado, " +
+            "estadoPolizaEncabezado, documentoOrigenPolizaEncabezado, descripcionPolizaEncabezado) " +
+            "VALUES (?, COALESCE((SELECT MIN(mcp.idPais) FROM tblModuloCuentaPais mcp WHERE mcp.idModuloContable = ?), 1), ?, ?, ?, ?, ?, ?)";
+        // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
 
         private const string _InsertDetalle =
             "INSERT INTO tblPolizaDetalle (idPolizaEncabezado, idCuenta, lineaPolizaDetalle, debePolizaDetalle, haberPolizaDetalle, descripcionPolizaDetalle) " +
@@ -174,6 +178,9 @@ namespace CapaModelo_Contabilidad.Repositorios
                         using (OdbcCommand Comando = new OdbcCommand(_InsertEncabezado, Conexion, Transaccion))
                         {
                             Comando.Parameters.AddWithValue("Modulo", Entidad.IdModulo);
+                            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                            Comando.Parameters.AddWithValue("ModuloPais", Entidad.IdModulo);
+                            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                             Comando.Parameters.AddWithValue("Codigo", Codigo);
                             Comando.Parameters.Add(new OdbcParameter("Fecha", OdbcType.Date) { Value = Entidad.Fecha.Date });
                             Comando.Parameters.AddWithValue("Periodo", Periodo);

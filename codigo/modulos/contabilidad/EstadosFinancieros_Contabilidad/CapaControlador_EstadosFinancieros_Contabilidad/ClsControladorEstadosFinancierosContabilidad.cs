@@ -16,6 +16,9 @@
  *  solas. El flujo de caja usa el método directo: entradas y salidas de
  *  Caja y Bancos clasificadas por la cuenta contrapartida. El nivel de
  *  detalle filtra la profundidad del árbol sin quitar los totales.
+ *  Se puede ver un país o todos juntos: cada país se convierte de su
+ *  moneda a la moneda pedida con el tipo de cambio de Bancos vigente al
+ *  cierre del mes final, y luego se suman.
  * ===================================================================
 */
 
@@ -37,6 +40,11 @@ namespace CapaControlador_Contabilidad
         public const string BalanceGeneral = "Balance general";
         public const string EstadoResultados = "Estado de resultados";
         public const string FlujoCaja = "Flujo de caja";
+        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
+        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+        public const string TodosPaises = "Todos (Centroamérica)";
+        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
 
         private readonly ClsRepositorioEstadosFinancierosContabilidad _Repositorio = new ClsRepositorioEstadosFinancierosContabilidad();
 
@@ -66,12 +74,35 @@ namespace CapaControlador_Contabilidad
             return new[] { "Nivel 1 - Grupos", "Nivel 2 - Subgrupos", "Nivel 3 - Cuentas mayores", "Nivel 4 - Detalle completo" };
         }
 
-        public ClsModeloEstadoFinancieroContabilidad ContabilidadFuncGenerar(string Tipo, DateTime Desde, DateTime Hasta)
+        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
+        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+        public DataTable ContabilidadFuncPaises()
         {
-            if (Tipo == BalanceGeneral) return ContabilidadFuncBalanceGeneral(Hasta);
-            if (Tipo == FlujoCaja) return ContabilidadFuncFlujoCaja(Desde, Hasta);
-            return ContabilidadFuncEstadoResultados(Desde, Hasta);
+            DataTable Paises = _Repositorio.ContabilidadFuncObtenerPaises();
+            DataRow Todos = Paises.NewRow();
+            Todos["idPais"] = 0;
+            Todos["nombrePais"] = TodosPaises;
+            Todos["codigoMonedaPais"] = "USD";
+            Paises.Rows.InsertAt(Todos, 0);
+            return Paises;
         }
+
+        public string[] ContabilidadFuncMonedas(DataTable Paises)
+        {
+            List<string> Monedas = new List<string>();
+            foreach (DataRow Pais in Paises.Rows)
+                if (!Monedas.Contains(Convert.ToString(Pais["codigoMonedaPais"]))) Monedas.Add(Convert.ToString(Pais["codigoMonedaPais"]));
+            return Monedas.ToArray();
+        }
+
+        public ClsModeloEstadoFinancieroContabilidad ContabilidadFuncGenerar(string Tipo, DateTime Desde, DateTime Hasta, int IdPais, string Moneda)
+        {
+            if (Tipo == BalanceGeneral) return ContabilidadFuncBalanceGeneral(Hasta, IdPais, Moneda);
+            if (Tipo == FlujoCaja) return ContabilidadFuncFlujoCaja(Desde, Hasta, IdPais, Moneda);
+            return ContabilidadFuncEstadoResultados(Desde, Hasta, IdPais, Moneda);
+        }
+        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
 
         public DataTable ContabilidadFuncFiltrarNivel(DataTable Filas, int Nivel)
         {
@@ -79,11 +110,16 @@ namespace CapaControlador_Contabilidad
             return Vista.ToTable();
         }
 
-        public ClsModeloEstadoFinancieroContabilidad ContabilidadFuncBalanceGeneral(DateTime Periodo)
+        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
+        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+        public ClsModeloEstadoFinancieroContabilidad ContabilidadFuncBalanceGeneral(DateTime Periodo, int IdPais, string Moneda)
         {
             string Mes = Periodo.ToString("yyyy-MM");
-            Dictionary<string, ClsNodoCuentaContabilidad> Arbol = ContabilidadFuncArbol(_Repositorio.ContabilidadFuncObtenerCuentas(Mes, Mes),
+            Dictionary<string, ClsNodoCuentaContabilidad> Arbol = ContabilidadFuncArbol(
+                ContabilidadFuncCuentas(Mes, Mes, ContabilidadFuncFactores(Periodo, IdPais, Moneda)),
                 Cuenta => Cuenta.Tipo == "DEUDORA" ? Cuenta.SaldoFinal : -Cuenta.SaldoFinal);
+            // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+            // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
             ClsModeloEstadoFinancieroContabilidad Estado = new ClsModeloEstadoFinancieroContabilidad { Filas = ContabilidadFuncTabla() };
             Estado.Activo = ContabilidadFuncAgregarRubro(Estado.Filas, Arbol, "1", "ACTIVO", true);
             Estado.Pasivo = ContabilidadFuncAgregarRubro(Estado.Filas, Arbol, "2", "PASIVO", true);
@@ -93,15 +129,19 @@ namespace CapaControlador_Contabilidad
             Estado.Resultado = Estado.Ingresos - Estado.Gastos;
             ContabilidadMetAgregarTotal(Estado.Filas, "PATRIMONIO", "Resultado del ejercicio", Estado.Resultado);
             ContabilidadMetAgregarTotal(Estado.Filas, "TOTAL", "Total pasivo, capital y resultado", Estado.Pasivo + Estado.Capital + Estado.Resultado);
-            Estado.Cuadra = Estado.Activo == Estado.Pasivo + Estado.Capital + Estado.Resultado;
+            // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
+            // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+            Estado.Cuadra = Math.Round(Estado.Activo, 2) == Math.Round(Estado.Pasivo + Estado.Capital + Estado.Resultado, 2);
             return Estado;
         }
 
-        public ClsModeloEstadoFinancieroContabilidad ContabilidadFuncEstadoResultados(DateTime Desde, DateTime Hasta)
+        public ClsModeloEstadoFinancieroContabilidad ContabilidadFuncEstadoResultados(DateTime Desde, DateTime Hasta, int IdPais, string Moneda)
         {
             if (Hasta.Date < Desde.Date) throw new ArgumentException("El mes final debe ser igual o posterior al inicial.");
-            Dictionary<string, ClsNodoCuentaContabilidad> Arbol = ContabilidadFuncArbol(
-                _Repositorio.ContabilidadFuncObtenerCuentas(Desde.ToString("yyyy-MM"), Hasta.ToString("yyyy-MM")), Cuenta => Cuenta.Cargo - Cuenta.Abono);
+            Dictionary<string, ClsNodoCuentaContabilidad> Arbol = ContabilidadFuncArbol(ContabilidadFuncCuentas(Desde.ToString("yyyy-MM"),
+                Hasta.ToString("yyyy-MM"), ContabilidadFuncFactores(Hasta, IdPais, Moneda)), Cuenta => Cuenta.Cargo - Cuenta.Abono);
+            // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+            // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
             ClsModeloEstadoFinancieroContabilidad Estado = new ClsModeloEstadoFinancieroContabilidad { Filas = ContabilidadFuncTabla() };
             Estado.Ingresos = ContabilidadFuncAgregarRubro(Estado.Filas, Arbol, "4", "INGRESOS", true);
             decimal CostosYGastos = ContabilidadFuncAgregarRubro(Estado.Filas, Arbol, "5", "COSTOS Y GASTOS", true);
@@ -113,16 +153,26 @@ namespace CapaControlador_Contabilidad
             return Estado;
         }
 
-        public ClsModeloEstadoFinancieroContabilidad ContabilidadFuncFlujoCaja(DateTime Desde, DateTime Hasta)
+        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
+        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+        public ClsModeloEstadoFinancieroContabilidad ContabilidadFuncFlujoCaja(DateTime Desde, DateTime Hasta, int IdPais, string Moneda)
         {
             if (Hasta.Date < Desde.Date) throw new ArgumentException("El mes final debe ser igual o posterior al inicial.");
             DateTime Inicio = new DateTime(Desde.Year, Desde.Month, 1);
             DateTime Fin = new DateTime(Hasta.Year, Hasta.Month, 1).AddMonths(1).AddDays(-1);
-            List<ClsCuentaSaldoContabilidad> Cuentas = _Repositorio.ContabilidadFuncObtenerCuentas(Inicio.ToString("yyyy-MM"), Fin.ToString("yyyy-MM"));
-            Dictionary<int, decimal> Flujo = _Repositorio.ContabilidadFuncObtenerFlujoEfectivo(Inicio, Fin);
+            List<KeyValuePair<int, decimal>> Factores = ContabilidadFuncFactores(Hasta, IdPais, Moneda);
+            List<ClsCuentaSaldoContabilidad> Cuentas = ContabilidadFuncCuentas(Inicio.ToString("yyyy-MM"), Fin.ToString("yyyy-MM"), Factores);
+            Dictionary<int, decimal> Flujo = new Dictionary<int, decimal>();
             ClsModeloEstadoFinancieroContabilidad Estado = new ClsModeloEstadoFinancieroContabilidad { Filas = ContabilidadFuncTabla() };
-            Estado.EfectivoInicial = _Repositorio.ContabilidadFuncObtenerEfectivo(Inicio.AddMonths(-1).ToString("yyyy-MM"));
-            Estado.EfectivoFinal = _Repositorio.ContabilidadFuncObtenerEfectivo(Fin.ToString("yyyy-MM"));
+            foreach (KeyValuePair<int, decimal> Factor in Factores)
+            {
+                foreach (KeyValuePair<int, decimal> Monto in _Repositorio.ContabilidadFuncObtenerFlujoEfectivo(Inicio, Fin, Factor.Key))
+                    Flujo[Monto.Key] = (Flujo.ContainsKey(Monto.Key) ? Flujo[Monto.Key] : 0m) + Monto.Value * Factor.Value;
+                Estado.EfectivoInicial += _Repositorio.ContabilidadFuncObtenerEfectivo(Inicio.AddMonths(-1).ToString("yyyy-MM"), Factor.Key) * Factor.Value;
+                Estado.EfectivoFinal += _Repositorio.ContabilidadFuncObtenerEfectivo(Fin.ToString("yyyy-MM"), Factor.Key) * Factor.Value;
+            }
+            // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+            // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
             ContabilidadMetAgregarTotal(Estado.Filas, "EFECTIVO", "Efectivo al inicio del período", Estado.EfectivoInicial);
             Estado.Operacion = ContabilidadFuncAgregarActividad(Estado.Filas, Cuentas, Flujo, "OPERACIÓN", "Flujo neto de actividades de operación");
             Estado.Inversion = ContabilidadFuncAgregarActividad(Estado.Filas, Cuentas, Flujo, "INVERSIÓN", "Flujo neto de actividades de inversión");
@@ -130,9 +180,69 @@ namespace CapaControlador_Contabilidad
             decimal Neto = Estado.Operacion + Estado.Inversion + Estado.Financiamiento;
             ContabilidadMetAgregarTotal(Estado.Filas, "EFECTIVO", "Aumento (disminución) neto de efectivo", Neto);
             ContabilidadMetAgregarTotal(Estado.Filas, "EFECTIVO", "Efectivo al final del período", Estado.EfectivoFinal);
-            Estado.Cuadra = Estado.EfectivoInicial + Neto == Estado.EfectivoFinal;
+            // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
+            // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+            Estado.Cuadra = Math.Round(Estado.EfectivoInicial + Neto, 2) == Math.Round(Estado.EfectivoFinal, 2);
             return Estado;
         }
+
+        private List<KeyValuePair<int, decimal>> ContabilidadFuncFactores(DateTime Hasta, int IdPais, string Moneda)
+        {
+            DateTime Cierre = new DateTime(Hasta.Year, Hasta.Month, 1).AddMonths(1).AddDays(-1);
+            Dictionary<string, decimal> Tipos = null;
+            List<KeyValuePair<int, decimal>> Factores = new List<KeyValuePair<int, decimal>>();
+            using (DataTable Paises = _Repositorio.ContabilidadFuncObtenerPaises())
+                foreach (DataRow Pais in Paises.Rows)
+                {
+                    int Id = Convert.ToInt32(Pais["idPais"]);
+                    if (IdPais != 0 && Id != IdPais) continue;
+                    string Origen = Convert.ToString(Pais["codigoMonedaPais"]);
+                    decimal? Factor = Origen == Moneda ? 1m
+                        : ContabilidadFuncFactor(Tipos ?? (Tipos = _Repositorio.ContabilidadFuncObtenerTiposCambio(Cierre)), Origen, Moneda);
+                    if (!Factor.HasValue)
+                        throw new InvalidOperationException("Bancos no tiene tipo de cambio de " + Origen + " a " + Moneda + " al " + Cierre.ToString("dd/MM/yyyy") + ".");
+                    Factores.Add(new KeyValuePair<int, decimal>(Id, Factor.Value));
+                }
+            if (Factores.Count == 0) throw new ArgumentException("El país seleccionado no existe o está inactivo.");
+            return Factores;
+        }
+
+        private static decimal? ContabilidadFuncFactor(Dictionary<string, decimal> Tipos, string Origen, string Destino)
+        {
+            if (Origen == Destino) return 1m;
+            if (Tipos.ContainsKey(Origen + ">" + Destino)) return Tipos[Origen + ">" + Destino];
+            if (Tipos.ContainsKey(Destino + ">" + Origen)) return 1m / Tipos[Destino + ">" + Origen];
+            if (Origen == "USD" || Destino == "USD") return null;
+            decimal? AUsd = ContabilidadFuncFactor(Tipos, Origen, "USD");
+            decimal? DeUsd = ContabilidadFuncFactor(Tipos, "USD", Destino);
+            return AUsd.HasValue && DeUsd.HasValue ? AUsd * DeUsd : null;
+        }
+
+        private List<ClsCuentaSaldoContabilidad> ContabilidadFuncCuentas(string Desde, string Hasta, List<KeyValuePair<int, decimal>> Factores)
+        {
+            List<ClsCuentaSaldoContabilidad> Total = new List<ClsCuentaSaldoContabilidad>();
+            Dictionary<int, ClsCuentaSaldoContabilidad> PorId = new Dictionary<int, ClsCuentaSaldoContabilidad>();
+            foreach (KeyValuePair<int, decimal> Factor in Factores)
+                foreach (ClsCuentaSaldoContabilidad Cuenta in _Repositorio.ContabilidadFuncObtenerCuentas(Desde, Hasta, Factor.Key))
+                {
+                    if (!PorId.ContainsKey(Cuenta.IdCuenta))
+                    {
+                        PorId[Cuenta.IdCuenta] = Cuenta;
+                        Cuenta.SaldoFinal *= Factor.Value;
+                        Cuenta.Cargo *= Factor.Value;
+                        Cuenta.Abono *= Factor.Value;
+                        Total.Add(Cuenta);
+                        continue;
+                    }
+                    ClsCuentaSaldoContabilidad Acumulada = PorId[Cuenta.IdCuenta];
+                    Acumulada.SaldoFinal += Cuenta.SaldoFinal * Factor.Value;
+                    Acumulada.Cargo += Cuenta.Cargo * Factor.Value;
+                    Acumulada.Abono += Cuenta.Abono * Factor.Value;
+                }
+            return Total;
+        }
+        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 29/10/2026
+        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 28/10/2026
 
         public static string ContabilidadFuncActividad(string Codigo)
         {
