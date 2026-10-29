@@ -580,7 +580,8 @@ namespace CapaVista_Contabilidad
             this.Icon = global::CapaVista_Contabilidad.Properties.Resources.Icono_Contabilidad;
             this.Name = "FrmPolizasLocales";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "10001 - PolizasLocales";
+            this.Text = "10006 - PolizasLocales";
+            this.ContabilidadPnlNavegador.ResumeLayout(false);
             this.ContabilidadPnlEncabezado.ResumeLayout(false);
             this.ContabilidadPnlEncabezado.PerformLayout();
             this.ContabilidadPnlDetalle.ResumeLayout(false);
