@@ -47,7 +47,6 @@ namespace CapaVista_Contabilidad
             this.ContabilidadColModulo = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ContabilidadColCompra = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ContabilidadColLibros = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.ContabilidadColLogistica = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ContabilidadBtnNueva = new Componentes.ClsBotonContabilidad();
             this.ContabilidadBtnEliminar = new Componentes.ClsBotonContabilidad();
             this.ContabilidadBtnGuardar = new Componentes.ClsBotonContabilidad();
@@ -247,11 +246,7 @@ namespace CapaVista_Contabilidad
             this.ContabilidadColLibros.MinimumWidth = 90;
             this.ContabilidadColLibros.DefaultCellStyle.Format = "N2";
             this.ContabilidadColLibros.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.ContabilidadColLogistica.Name = "ContabilidadColLogistica";
-            this.ContabilidadColLogistica.DataPropertyName = "Logistica";
-            this.ContabilidadColLogistica.HeaderText = "Sincronización con Logística";
-            this.ContabilidadColLogistica.MinimumWidth = 200;
-            this.ContabilidadDgvCatalogo.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { this.ContabilidadColCodigo, this.ContabilidadColNombre, this.ContabilidadColMeses, this.ContabilidadColModulo, this.ContabilidadColCompra, this.ContabilidadColLibros, this.ContabilidadColLogistica });
+            this.ContabilidadDgvCatalogo.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] { this.ContabilidadColCodigo, this.ContabilidadColNombre, this.ContabilidadColMeses, this.ContabilidadColModulo, this.ContabilidadColCompra, this.ContabilidadColLibros });
             this.ContabilidadDgvCatalogo.ColumnHeadersHeight = 46;
             this.ContabilidadDgvCatalogo.RowTemplate.Height = 22;
             this.ContabilidadBtnNueva.Name = "ContabilidadBtnNueva";
@@ -324,7 +319,6 @@ namespace CapaVista_Contabilidad
         private System.Windows.Forms.DataGridViewTextBoxColumn ContabilidadColModulo;
         private System.Windows.Forms.DataGridViewTextBoxColumn ContabilidadColCompra;
         private System.Windows.Forms.DataGridViewTextBoxColumn ContabilidadColLibros;
-        private System.Windows.Forms.DataGridViewTextBoxColumn ContabilidadColLogistica;
         private Componentes.ClsBotonContabilidad ContabilidadBtnNueva;
         private Componentes.ClsBotonContabilidad ContabilidadBtnEliminar;
         private Componentes.ClsBotonContabilidad ContabilidadBtnGuardar;

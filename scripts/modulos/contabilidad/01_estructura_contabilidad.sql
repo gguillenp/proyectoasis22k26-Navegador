@@ -374,11 +374,7 @@ ALTER TABLE tblCuenta
     RENAME COLUMN abonoActualCuenta TO abonoAcumuladoCuenta;
 
 ALTER TABLE tblActivoFijo
-    DROP COLUMN codigoCentroCostoActivoFijo,
-    ADD COLUMN estadoEnvioLogisticaActivoFijo VARCHAR(10) NOT NULL DEFAULT 'PENDIENTE' AFTER fechaInicioUsoActivoFijo,
-    ADD COLUMN referenciaLogisticaActivoFijo VARCHAR(50) NULL AFTER estadoEnvioLogisticaActivoFijo,
-    ADD COLUMN fechaEnvioLogisticaActivoFijo DATETIME NULL AFTER referenciaLogisticaActivoFijo,
-    ADD CONSTRAINT ckActivoFijoEnvioLogistica CHECK (estadoEnvioLogisticaActivoFijo IN ('PENDIENTE','ENVIADO'));
+    DROP COLUMN codigoCentroCostoActivoFijo;
 -- Fin de cambio: Dylan Hernández - 0901-23-519 - 28/10/2026
 
 -- Inicio de cambio: Dylan Hernández - 0901-23-519 - 29/10/2026
