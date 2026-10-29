@@ -10,7 +10,8 @@
  *  diagnóstico que permite o bloquea el cierre. Responsable de la
  *  pantalla: Donald.
  * Reglas especificas:
- *  No cierra períodos en la base: solo revisa y valida.
+ *  Solo se cierra un período sin borradores ni pólizas validadas
+ *  pendientes de aplicar. El cierre lo ejecuta el repositorio de cierre.
  * ===================================================================
 */
 
@@ -30,6 +31,29 @@ namespace CapaControlador_Contabilidad
     public class ClsControladorCierreContabilidad
     {
         private readonly IRepositorioPolizasContabilidad _Repositorio = new ClsRepositorioPolizasContabilidad();
+        // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+        private readonly ClsRepositorioCierreContabilidad _Cierre = new ClsRepositorioCierreContabilidad();
+
+        public string ContabilidadFuncEstadoPeriodo(DateTime Periodo)
+        {
+            return _Cierre.ContabilidadFuncEstadoPeriodo(Periodo.ToString("yyyy-MM"));
+        }
+
+        public bool ContabilidadFuncCerrarPeriodo(DateTime Periodo, out string Mensaje)
+        {
+            try
+            {
+                string Siguiente = _Cierre.ContabilidadFuncCerrarPeriodo(Periodo.ToString("yyyy-MM"));
+                Mensaje = "Período " + Periodo.ToString("yyyy-MM") + " cerrado. Los saldos finales pasaron como saldos iniciales de " + Siguiente + ".";
+                return true;
+            }
+            catch (Exception Excepcion)
+            {
+                Mensaje = Excepcion.Message;
+                return false;
+            }
+        }
+        // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
 
         public DataTable ContabilidadFuncPolizas(DateTime Periodo)
         {
@@ -56,9 +80,14 @@ namespace CapaControlador_Contabilidad
             foreach (DataRow Fila in Polizas.Rows)
             {
                 if ((string)Fila["Estado"] == "BORRADOR") return "Hay pólizas en borrador. Revise y valide o anule antes del cierre.";
-                if (ContabilidadFuncEsFirme(Fila) && (decimal)Fila["Diferencia"] != 0m) return "Hay pólizas validadas descuadradas.";
+                // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+                if ((string)Fila["Estado"] == "VALIDADA") return "Hay pólizas validadas sin aplicar. Ejecute la actualización de saldos antes del cierre.";
+                if (ContabilidadFuncEsFirme(Fila) && (decimal)Fila["Diferencia"] != 0m) return "Hay pólizas aplicadas descuadradas.";
+                // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
             }
-            if (!Polizas.Rows.Cast<DataRow>().Any(ContabilidadFuncEsFirme)) return "El período no tiene pólizas validadas.";
+            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+            if (!Polizas.Rows.Cast<DataRow>().Any(ContabilidadFuncEsFirme)) return "El período no tiene pólizas aplicadas.";
+            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
             return string.Empty;
         }
 
@@ -79,8 +108,9 @@ namespace CapaControlador_Contabilidad
 
         private static bool ContabilidadFuncEsFirme(DataRow Fila)
         {
-            string Estado = (string)Fila["Estado"];
-            return Estado == "VALIDADA" || Estado == "APLICADA";
+            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+            return (string)Fila["Estado"] == "APLICADA";
+            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
         }
     }
 }

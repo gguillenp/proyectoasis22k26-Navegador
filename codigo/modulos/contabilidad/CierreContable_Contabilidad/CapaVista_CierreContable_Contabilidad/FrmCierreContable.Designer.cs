@@ -25,7 +25,6 @@ namespace CapaVista_Contabilidad
             this.ContabilidadLblPeriodo = new System.Windows.Forms.Label();
             this.ContabilidadDtpPeriodo = new System.Windows.Forms.DateTimePicker();
             this.ContabilidadBtnRevisar = new Componentes.ClsBotonContabilidad();
-            this.ContabilidadLblAlcance = new System.Windows.Forms.Label();
             this.ContabilidadPnlPolizas = new Componentes.ClsPanelRedondeadoContabilidad();
             this.ContabilidadLblPolizas = new System.Windows.Forms.Label();
             this.ContabilidadDgvPolizas = new Componentes.ClsTablaContabilidad();
@@ -37,7 +36,7 @@ namespace CapaVista_Contabilidad
             this.ContabilidadColDiferencia = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ContabilidadLblValidacion = new System.Windows.Forms.Label();
             this.ContabilidadLblResumen = new System.Windows.Forms.Label();
-            this.ContabilidadBtnSimular = new Componentes.ClsBotonContabilidad();
+            this.ContabilidadBtnCerrar = new Componentes.ClsBotonContabilidad();
             System.Windows.Forms.DataGridViewCellStyle EstiloContabilidadColFecha = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle EstiloContabilidadColDebe = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle EstiloContabilidadColHaber = new System.Windows.Forms.DataGridViewCellStyle();
@@ -86,14 +85,6 @@ namespace CapaVista_Contabilidad
             this.ContabilidadBtnRevisar.Location = new System.Drawing.Point(290, 40);
             this.ContabilidadBtnRevisar.Size = new System.Drawing.Size(210, 42);
             this.ContabilidadBtnRevisar.Estilo = Componentes.EstiloBotonContabilidad.Acento;
-            this.ContabilidadLblAlcance.Name = "ContabilidadLblAlcance";
-            this.ContabilidadPnlPeriodo.Controls.Add(this.ContabilidadLblAlcance);
-            this.ContabilidadLblAlcance.Text = "Las pólizas anuladas no se incluyen en los totales del cierre.";
-            this.ContabilidadLblAlcance.Location = new System.Drawing.Point(530, 26);
-            this.ContabilidadLblAlcance.Size = new System.Drawing.Size(560, 64);
-            this.ContabilidadLblAlcance.ForeColor = System.Drawing.Color.FromArgb(35, 50, 61);
-            this.ContabilidadLblAlcance.BackColor = System.Drawing.Color.Transparent;
-            this.ContabilidadLblAlcance.Font = new System.Drawing.Font("Tahoma", 10F);
             this.ContabilidadPnlPolizas.Name = "ContabilidadPnlPolizas";
             this.Controls.Add(this.ContabilidadPnlPolizas);
             this.ContabilidadPnlPolizas.Location = new System.Drawing.Point(24, 222);
@@ -172,13 +163,13 @@ namespace CapaVista_Contabilidad
             this.ContabilidadLblResumen.ForeColor = System.Drawing.Color.FromArgb(35, 50, 61);
             this.ContabilidadLblResumen.BackColor = System.Drawing.Color.Transparent;
             this.ContabilidadLblResumen.Font = new System.Drawing.Font("Tahoma", 10F);
-            this.ContabilidadBtnSimular.Name = "ContabilidadBtnSimular";
-            this.Controls.Add(this.ContabilidadBtnSimular);
-            this.ContabilidadBtnSimular.Text = "Cerrar período";
-            this.ContabilidadBtnSimular.Location = new System.Drawing.Point(936, 626);
-            this.ContabilidadBtnSimular.Size = new System.Drawing.Size(220, 42);
-            this.ContabilidadBtnSimular.Estilo = Componentes.EstiloBotonContabilidad.Dorado;
-            this.ContabilidadBtnSimular.Icono = global::CapaVista_Contabilidad.Properties.Resources.ico_aplicar;
+            this.ContabilidadBtnCerrar.Name = "ContabilidadBtnCerrar";
+            this.Controls.Add(this.ContabilidadBtnCerrar);
+            this.ContabilidadBtnCerrar.Text = "Cerrar período";
+            this.ContabilidadBtnCerrar.Location = new System.Drawing.Point(936, 626);
+            this.ContabilidadBtnCerrar.Size = new System.Drawing.Size(220, 42);
+            this.ContabilidadBtnCerrar.Estilo = Componentes.EstiloBotonContabilidad.Dorado;
+            this.ContabilidadBtnCerrar.Icono = global::CapaVista_Contabilidad.Properties.Resources.ico_aplicar;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = global::CapaVista_Contabilidad.Properties.Resources.Icono_Contabilidad;
             this.MaximizeBox = false;
@@ -205,7 +196,6 @@ namespace CapaVista_Contabilidad
         private System.Windows.Forms.Label ContabilidadLblPeriodo;
         private System.Windows.Forms.DateTimePicker ContabilidadDtpPeriodo;
         private Componentes.ClsBotonContabilidad ContabilidadBtnRevisar;
-        private System.Windows.Forms.Label ContabilidadLblAlcance;
         private Componentes.ClsPanelRedondeadoContabilidad ContabilidadPnlPolizas;
         private System.Windows.Forms.Label ContabilidadLblPolizas;
         private Componentes.ClsTablaContabilidad ContabilidadDgvPolizas;
@@ -217,6 +207,6 @@ namespace CapaVista_Contabilidad
         private System.Windows.Forms.DataGridViewTextBoxColumn ContabilidadColDiferencia;
         private System.Windows.Forms.Label ContabilidadLblValidacion;
         private System.Windows.Forms.Label ContabilidadLblResumen;
-        private Componentes.ClsBotonContabilidad ContabilidadBtnSimular;
+        private Componentes.ClsBotonContabilidad ContabilidadBtnCerrar;
     }
 }
