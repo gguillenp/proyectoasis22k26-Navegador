@@ -113,12 +113,17 @@ namespace CapaVista_Contabilidad
             Tabla.Columns.Add("Fecha", typeof(string));
             Tabla.Columns.Add("Módulo", typeof(string));
             Tabla.Columns.Add("Estado", typeof(string));
-            Tabla.Columns.Add("Total (Q)", typeof(string));
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            Tabla.Columns.Add("Total", typeof(string));
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             Tabla.Columns.Add("Descripción", typeof(string));
             foreach (ClsModeloPolizaContabilidad Poliza in Filtradas)
                 Tabla.Rows.Add(Poliza.IdPoliza, Poliza.Periodo, _Controlador.ContabilidadFuncNumeroPoliza(Poliza.CodigoPoliza), Poliza.CodigoPoliza,
                     Poliza.Fecha.ToString("dd/MM/yyyy"), Poliza.Modulo, Poliza.Estado,
-                    _Controlador.ContabilidadFuncTotalDebe(Poliza.Lineas).ToString("N2", _Cultura), Poliza.Descripcion);
+                    // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                    _Controlador.ContabilidadFuncMonedaPais(Poliza.IdPais) + " " + _Controlador.ContabilidadFuncTotalDebe(Poliza.Lineas).ToString("N2", _Cultura),
+                    Poliza.Descripcion);
+                    // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
 
             ContabilidadDgvEncabezados.DataSource = Tabla;
             ContabilidadDgvEncabezados.Columns["Id"].Visible = false;
@@ -128,8 +133,10 @@ namespace CapaVista_Contabilidad
             ContabilidadDgvEncabezados.Columns["Fecha"].FillWeight = 65;
             ContabilidadDgvEncabezados.Columns["Módulo"].FillWeight = 80;
             ContabilidadDgvEncabezados.Columns["Estado"].FillWeight = 70;
-            ContabilidadDgvEncabezados.Columns["Total (Q)"].FillWeight = 75;
-            ContabilidadDgvEncabezados.Columns["Total (Q)"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            ContabilidadDgvEncabezados.Columns["Total"].FillWeight = 75;
+            ContabilidadDgvEncabezados.Columns["Total"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             ContabilidadDgvEncabezados.Columns["Descripción"].FillWeight = 200;
             int Pendientes = _Polizas.Count(Poliza => Poliza.Estado == "VALIDADA");
             ContabilidadLblTotal.Text = Tabla.Rows.Count + (Tabla.Rows.Count == 1 ? " póliza" : " pólizas") +

@@ -501,6 +501,14 @@ namespace CapaModelo_Contabilidad.Repositorios
                 foreach (DataRow Fila in Tabla.Rows) Paises[Convert.ToInt32(Fila[0])] = Convert.ToString(Fila[1]);
             return Paises;
         }
+
+        public Dictionary<int, string> ContabilidadFuncObtenerMonedasPais()
+        {
+            Dictionary<int, string> Monedas = new Dictionary<int, string>();
+            using (DataTable Tabla = ContabilidadFuncEjecutarConsulta("SELECT idPais, codigoMonedaPais FROM tblPais", CommandType.Text))
+                foreach (DataRow Fila in Tabla.Rows) Monedas[Convert.ToInt32(Fila[0])] = Convert.ToString(Fila[1]);
+            return Monedas;
+        }
         // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
 
         public string ContabilidadFuncObtenerNombreModulo(int IdModulo)

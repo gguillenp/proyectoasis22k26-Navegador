@@ -31,6 +31,9 @@ namespace CapaControlador_Contabilidad
     public class ClsControladorPolizasContabilidad
     {
         private readonly IRepositorioPolizasContabilidad _Repositorio;
+        // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+        private Dictionary<int, string> _Monedas;
+        // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
 
         public ClsControladorPolizasContabilidad() : this(new ClsRepositorioPolizasContabilidad())
         {
@@ -56,6 +59,12 @@ namespace CapaControlador_Contabilidad
         public List<KeyValuePair<int, string>> ContabilidadFuncObtenerPaises()
         {
             return _Repositorio.ContabilidadFuncObtenerPaises().ToList();
+        }
+
+        public string ContabilidadFuncMonedaPais(int IdPais)
+        {
+            if (_Monedas == null) _Monedas = _Repositorio.ContabilidadFuncObtenerMonedasPais();
+            return _Monedas.ContainsKey(IdPais) ? _Monedas[IdPais] : "GTQ";
         }
         // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
 

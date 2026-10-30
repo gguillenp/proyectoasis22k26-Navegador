@@ -165,6 +165,7 @@ namespace CapaVista_Contabilidad
             try
             {
                 ContabilidadCboPais.DataSource = _Controlador.ContabilidadFuncObtenerPaises();
+                ContabilidadCboPais.SelectedIndexChanged += (Remitente, Argumentos) => ContabilidadMetRecalcularTotales();
             }
             catch (Exception Excepcion)
             {
@@ -276,8 +277,13 @@ namespace CapaVista_Contabilidad
             decimal Debe = _Controlador.ContabilidadFuncTotalDebe(_Lineas);
             decimal Haber = _Controlador.ContabilidadFuncTotalHaber(_Lineas);
             bool Cuadrada = _Controlador.ContabilidadFuncEstaCuadrada(_Lineas);
-            ContabilidadLblTotalDebe.Text = "Total debe: Q " + Debe.ToString("N2", _Cultura);
-            ContabilidadLblTotalHaber.Text = "Total haber: Q " + Haber.ToString("N2", _Cultura);
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+            string Moneda = _Controlador.ContabilidadFuncMonedaPais(ContabilidadCboPais.SelectedValue == null ? 1 : (int)ContabilidadCboPais.SelectedValue);
+            ContabilidadColDebe.HeaderText = "Debe (" + Moneda + ")";
+            ContabilidadColHaber.HeaderText = "Haber (" + Moneda + ")";
+            ContabilidadLblTotalDebe.Text = "Total debe: " + Moneda + " " + Debe.ToString("N2", _Cultura);
+            ContabilidadLblTotalHaber.Text = "Total haber: " + Moneda + " " + Haber.ToString("N2", _Cultura);
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
             if (_Lineas.Count == 0)
             {
                 ContabilidadLblCuadre.Text = "Agregue las cuentas de la póliza";
@@ -285,7 +291,9 @@ namespace CapaVista_Contabilidad
             }
             else
             {
-                ContabilidadLblCuadre.Text = Cuadrada ? "Cuadrada" : "Descuadrada · diferencia Q " + Math.Abs(Debe - Haber).ToString("N2", _Cultura);
+                // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
+                ContabilidadLblCuadre.Text = Cuadrada ? "Cuadrada" : "Descuadrada · diferencia " + Moneda + " " + Math.Abs(Debe - Haber).ToString("N2", _Cultura);
+                // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 29/10/2026
                 ContabilidadLblCuadre.ForeColor = Cuadrada ? Color.FromArgb(70, 104, 125) : Color.FromArgb(197, 143, 62);
             }
             // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026

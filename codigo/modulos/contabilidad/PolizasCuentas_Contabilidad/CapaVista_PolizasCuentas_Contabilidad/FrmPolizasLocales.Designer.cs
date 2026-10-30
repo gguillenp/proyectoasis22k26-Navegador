@@ -511,7 +511,7 @@ namespace CapaVista_Contabilidad
             dataGridViewCellStyleDebe.NullValue = "0.00";
             this.ContabilidadColDebe.DefaultCellStyle = dataGridViewCellStyleDebe;
             this.ContabilidadColDebe.FillWeight = 80F;
-            this.ContabilidadColDebe.HeaderText = "Debe (Q)";
+            this.ContabilidadColDebe.HeaderText = "Debe";
             this.ContabilidadColDebe.MinimumWidth = 6;
             this.ContabilidadColDebe.Name = "ContabilidadColDebe";
             this.ContabilidadColHaber.DataPropertyName = "Haber";
@@ -520,7 +520,7 @@ namespace CapaVista_Contabilidad
             dataGridViewCellStyleHaber.NullValue = "0.00";
             this.ContabilidadColHaber.DefaultCellStyle = dataGridViewCellStyleHaber;
             this.ContabilidadColHaber.FillWeight = 80F;
-            this.ContabilidadColHaber.HeaderText = "Haber (Q)";
+            this.ContabilidadColHaber.HeaderText = "Haber";
             this.ContabilidadColHaber.MinimumWidth = 6;
             this.ContabilidadColHaber.Name = "ContabilidadColHaber";
             this.ContabilidadColQuitar.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
