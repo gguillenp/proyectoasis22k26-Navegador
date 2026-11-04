@@ -7,23 +7,26 @@
  * ==================================================================
  * Propósito :
  *  Pruebas unitarias de Pólizas y cuentas contables, únicamente de la
- *  capa Modelo (entidades) y de la capa Vista (componentes visuales).
+ *  capa Modelo (entidades y repositorios) y de la capa Vista.
  * Reglas especificas:
  *  Las clases de la Vista son internal; se acceden por reflexión para
- *  no modificar el código de la capa. Los repositorios del Modelo no
- *  se prueban porque dependen de la base de datos.
+ *  no modificar el código de la capa. De los repositorios se prueba
+ *  solo la lógica que se ejecuta antes de abrir la conexión ODBC.
  * ===================================================================
 */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Windows.Forms;
+using CapaModelo_Contabilidad.Contratos;
 using CapaModelo_Contabilidad.Entidades;
+using CapaModelo_Contabilidad.Repositorios;
 
 namespace TestPolizasCuentas_Contabilidad
 {
@@ -231,6 +234,180 @@ namespace TestPolizasCuentas_Contabilidad
             Assert.AreEqual(0m, Linea.Haber);
             Assert.AreEqual(0, Linea.Linea);
             Assert.IsNull(Linea.DescripcionDetalle);
+        }
+
+        // ===================== Capa Modelo: ClsRepositorioPolizasContabilidad =====================
+        // Las validaciones de ContabilidadFuncAgregar ocurren antes de abrir la conexión,
+        // por eso se prueban sin base de datos.
+
+        private static ClsPolizaContabilidad ContabilidadFuncPolizaConLineas(params decimal[][] Lineas)
+        {
+            ClsPolizaContabilidad Poliza = new ClsPolizaContabilidad { Fecha = new DateTime(2026, 11, 3), Descripcion = "Prueba" };
+            int Numero = 1;
+            foreach (decimal[] Linea in Lineas)
+                Poliza.Detalle.Add(new ClsPolizaDetalleContabilidad { Linea = Numero, IdCuenta = Numero++, Debe = Linea[0], Haber = Linea[1] });
+            return Poliza;
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void Test_RepositorioPolizas_AgregarSinDetalle()
+        {
+            //Arrange: inicializar las variables
+            ClsRepositorioPolizasContabilidad Repositorio = new ClsRepositorioPolizasContabilidad();
+            ClsPolizaContabilidad Poliza = new ClsPolizaContabilidad { Detalle = null };
+            //Act: ejecucion del metodo a probar
+            Repositorio.ContabilidadFuncAgregar(Poliza);
+            //Assert: comprobacion de los resultados
+            Assert.Fail("Se esperaba InvalidOperationException para una póliza sin detalle.");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void Test_RepositorioPolizas_AgregarConUnaSolaLinea()
+        {
+            //Arrange: inicializar las variables
+            ClsRepositorioPolizasContabilidad Repositorio = new ClsRepositorioPolizasContabilidad();
+            ClsPolizaContabilidad Poliza = ContabilidadFuncPolizaConLineas(new[] { 100m, 0m });
+            //Act: ejecucion del metodo a probar
+            Repositorio.ContabilidadFuncAgregar(Poliza);
+            //Assert: comprobacion de los resultados
+            Assert.Fail("Se esperaba InvalidOperationException para una póliza de una línea.");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void Test_RepositorioPolizas_AgregarDescuadrada()
+        {
+            //Arrange: inicializar las variables
+            ClsRepositorioPolizasContabilidad Repositorio = new ClsRepositorioPolizasContabilidad();
+            ClsPolizaContabilidad Poliza = ContabilidadFuncPolizaConLineas(new[] { 250m, 0m }, new[] { 0m, 200m });
+            //Act: ejecucion del metodo a probar
+            Repositorio.ContabilidadFuncAgregar(Poliza);
+            //Assert: comprobacion de los resultados
+            Assert.Fail("Se esperaba InvalidOperationException para una póliza descuadrada.");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void Test_RepositorioPolizas_AgregarConTotalCero()
+        {
+            //Arrange: inicializar las variables
+            ClsRepositorioPolizasContabilidad Repositorio = new ClsRepositorioPolizasContabilidad();
+            ClsPolizaContabilidad Poliza = ContabilidadFuncPolizaConLineas(new[] { 0m, 0m }, new[] { 0m, 0m });
+            //Act: ejecucion del metodo a probar
+            Repositorio.ContabilidadFuncAgregar(Poliza);
+            //Assert: comprobacion de los resultados
+            Assert.Fail("Se esperaba InvalidOperationException para una póliza con total cero.");
+        }
+
+        [TestMethod]
+        public void Test_RepositorioPolizas_MensajeDePolizaDescuadrada()
+        {
+            //Arrange: inicializar las variables
+            ClsRepositorioPolizasContabilidad Repositorio = new ClsRepositorioPolizasContabilidad();
+            ClsPolizaContabilidad Poliza = ContabilidadFuncPolizaConLineas(new[] { 100m, 0m }, new[] { 0m, 99.99m });
+            string Mensaje = null;
+            //Act: ejecucion del metodo a probar
+            try { Repositorio.ContabilidadFuncAgregar(Poliza); }
+            catch (InvalidOperationException Error) { Mensaje = Error.Message; }
+            //Assert: comprobacion de los resultados
+            Assert.IsNotNull(Mensaje);
+            StringAssert.Contains(Mensaje, "no cuadra");
+            Assert.AreEqual(0, Poliza.IdPoliza);
+            Assert.IsNull(Poliza.CodigoPoliza);
+        }
+
+        [TestMethod]
+        public void Test_RepositorioPolizas_ObtenerEstados()
+        {
+            //Arrange: inicializar las variables
+            ClsRepositorioPolizasContabilidad Repositorio = new ClsRepositorioPolizasContabilidad();
+            //Act: ejecucion del metodo a probar
+            string[] Estados = Repositorio.ContabilidadFuncObtenerEstados();
+            //Assert: comprobacion de los resultados
+            CollectionAssert.AreEqual(new[] { "BORRADOR", "VALIDADA", "ANULADA" }, Estados);
+        }
+
+        [TestMethod]
+        public void Test_RepositorioPolizas_ImplementaContrato()
+        {
+            //Arrange: inicializar las variables
+            //Act: ejecucion del metodo a probar
+            object Repositorio = new ClsRepositorioPolizasContabilidad();
+            //Assert: comprobacion de los resultados
+            Assert.IsInstanceOfType(Repositorio, typeof(IRepositorioPolizasContabilidad));
+            Assert.IsInstanceOfType(Repositorio, typeof(ClsRepositorioMaestroContabilidad));
+        }
+
+        // ===================== Capa Modelo: ClsRepositorioCuentasContabilidad =====================
+
+        private static DataTable ContabilidadFuncTablaCuentas()
+        {
+            DataTable Tabla = new DataTable();
+            Tabla.Columns.Add("idCuenta", typeof(int));
+            Tabla.Columns.Add("codigoCuenta", typeof(string));
+            Tabla.Columns.Add("nombreCuenta", typeof(string));
+            Tabla.Columns.Add("tipoCuenta", typeof(string));
+            Tabla.Columns.Add("idCuentaPadre", typeof(int));
+            Tabla.Columns.Add("is_active", typeof(int));
+            return Tabla;
+        }
+
+        [TestMethod]
+        public void Test_RepositorioCuentas_MapearFilas()
+        {
+            //Arrange: inicializar las variables
+            DataTable Tabla = ContabilidadFuncTablaCuentas();
+            Tabla.Rows.Add(1, "1", "Activo", "DEUDORA", DBNull.Value, 1);
+            Tabla.Rows.Add(2, "1.1", "Activo corriente", "DEUDORA", 1, 0);
+            //Act: ejecucion del metodo a probar
+            List<ClsCuentaContabilidad> Cuentas = (List<ClsCuentaContabilidad>)ContabilidadFuncInvocarEstatico(
+                typeof(ClsRepositorioCuentasContabilidad), "ContabilidadFuncMapear", Tabla);
+            //Assert: comprobacion de los resultados
+            Assert.AreEqual(2, Cuentas.Count);
+            Assert.AreEqual(1, Cuentas[0].IdCuenta);
+            Assert.AreEqual("1", Cuentas[0].Codigo);
+            Assert.AreEqual("Activo", Cuentas[0].Nombre);
+            Assert.AreEqual("DEUDORA", Cuentas[0].Tipo);
+            Assert.AreEqual(0, Cuentas[0].IdPadre);
+            Assert.IsTrue(Cuentas[0].Activo);
+            Assert.AreEqual(1, Cuentas[1].IdPadre);
+            Assert.IsFalse(Cuentas[1].Activo);
+        }
+
+        [TestMethod]
+        public void Test_RepositorioCuentas_MapearTablaVacia()
+        {
+            //Arrange: inicializar las variables
+            DataTable Tabla = ContabilidadFuncTablaCuentas();
+            //Act: ejecucion del metodo a probar
+            List<ClsCuentaContabilidad> Cuentas = (List<ClsCuentaContabilidad>)ContabilidadFuncInvocarEstatico(
+                typeof(ClsRepositorioCuentasContabilidad), "ContabilidadFuncMapear", Tabla);
+            //Assert: comprobacion de los resultados
+            Assert.IsNotNull(Cuentas);
+            Assert.AreEqual(0, Cuentas.Count);
+        }
+
+        [TestMethod]
+        public void Test_RepositorioCuentas_ImplementaContrato()
+        {
+            //Arrange: inicializar las variables
+            //Act: ejecucion del metodo a probar
+            object Repositorio = new ClsRepositorioCuentasContabilidad();
+            //Assert: comprobacion de los resultados
+            Assert.IsInstanceOfType(Repositorio, typeof(IRepositorioCuentasContabilidad));
+            Assert.IsInstanceOfType(Repositorio, typeof(ClsRepositorioMaestroContabilidad));
+        }
+
+        [TestMethod]
+        public void Test_RepositorioIntegracion_HeredaRepositorioMaestro()
+        {
+            //Arrange: inicializar las variables
+            //Act: ejecucion del metodo a probar
+            object Repositorio = new ClsRepositorioIntegracionContabilidad();
+            //Assert: comprobacion de los resultados
+            Assert.IsInstanceOfType(Repositorio, typeof(ClsRepositorioMaestroContabilidad));
         }
 
         // ===================== Capa Vista: ClsTablaContabilidad =====================
