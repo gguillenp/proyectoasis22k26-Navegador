@@ -1,0 +1,1706 @@
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaControlador_CierreContable_Contabilidad/ClsControladorCierreContabilidad.cs b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaControlador_CierreContable_Contabilidad/ClsControladorCierreContabilidad.cs
+index cc3ecf38..c8f4c1b0 100644
+--- a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaControlador_CierreContable_Contabilidad/ClsControladorCierreContabilidad.cs	
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaControlador_CierreContable_Contabilidad/ClsControladorCierreContabilidad.cs	
+@@ -10,7 +10,8 @@
+  *  diagnóstico que permite o bloquea el cierre. Responsable de la
+  *  pantalla: Donald.
+  * Reglas especificas:
+- *  No cierra períodos en la base: solo revisa y valida.
++ *  Solo se cierra un período sin borradores ni pólizas validadas
++ *  pendientes de aplicar. El cierre lo ejecuta el repositorio de cierre.
+  * ===================================================================
+ */
+ 
+@@ -30,6 +31,29 @@ namespace CapaControlador_Contabilidad
+     public class ClsControladorCierreContabilidad
+     {
+         private readonly IRepositorioPolizasContabilidad _Repositorio = new ClsRepositorioPolizasContabilidad();
++        // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
++        private readonly ClsRepositorioCierreContabilidad _Cierre = new ClsRepositorioCierreContabilidad();
++
++        public string ContabilidadFuncEstadoPeriodo(DateTime Periodo)
++        {
++            return _Cierre.ContabilidadFuncEstadoPeriodo(Periodo.ToString("yyyy-MM"));
++        }
++
++        public bool ContabilidadFuncCerrarPeriodo(DateTime Periodo, out string Mensaje)
++        {
++            try
++            {
++                string Siguiente = _Cierre.ContabilidadFuncCerrarPeriodo(Periodo.ToString("yyyy-MM"));
++                Mensaje = "Período " + Periodo.ToString("yyyy-MM") + " cerrado. Los saldos finales pasaron como saldos iniciales de " + Siguiente + ".";
++                return true;
++            }
++            catch (Exception Excepcion)
++            {
++                Mensaje = Excepcion.Message;
++                return false;
++            }
++        }
++        // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+ 
+         public DataTable ContabilidadFuncPolizas(DateTime Periodo)
+         {
+@@ -56,9 +80,14 @@ namespace CapaControlador_Contabilidad
+             foreach (DataRow Fila in Polizas.Rows)
+             {
+                 if ((string)Fila["Estado"] == "BORRADOR") return "Hay pólizas en borrador. Revise y valide o anule antes del cierre.";
+-                if (ContabilidadFuncEsFirme(Fila) && (decimal)Fila["Diferencia"] != 0m) return "Hay pólizas validadas descuadradas.";
++                // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
++                if ((string)Fila["Estado"] == "VALIDADA") return "Hay pólizas validadas sin aplicar. Ejecute la actualización de saldos antes del cierre.";
++                if (ContabilidadFuncEsFirme(Fila) && (decimal)Fila["Diferencia"] != 0m) return "Hay pólizas aplicadas descuadradas.";
++                // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+             }
+-            if (!Polizas.Rows.Cast<DataRow>().Any(ContabilidadFuncEsFirme)) return "El período no tiene pólizas validadas.";
++            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
++            if (!Polizas.Rows.Cast<DataRow>().Any(ContabilidadFuncEsFirme)) return "El período no tiene pólizas aplicadas.";
++            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+             return string.Empty;
+         }
+ 
+@@ -79,8 +108,9 @@ namespace CapaControlador_Contabilidad
+ 
+         private static bool ContabilidadFuncEsFirme(DataRow Fila)
+         {
+-            string Estado = (string)Fila["Estado"];
+-            return Estado == "VALIDADA" || Estado == "APLICADA";
++            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
++            return (string)Fila["Estado"] == "APLICADA";
++            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+         }
+     }
+ }
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaModelo_CierreContable_Contabilidad/CapaModelo_CierreContable_Contabilidad.csproj b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaModelo_CierreContable_Contabilidad/CapaModelo_CierreContable_Contabilidad.csproj
+index 937aa844..97913cd8 100644
+--- a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaModelo_CierreContable_Contabilidad/CapaModelo_CierreContable_Contabilidad.csproj	
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaModelo_CierreContable_Contabilidad/CapaModelo_CierreContable_Contabilidad.csproj	
+@@ -44,6 +44,7 @@
+   </ItemGroup>
+   <ItemGroup>
+     <Compile Include="Properties\AssemblyInfo.cs" />
++    <Compile Include="Repositorios\ClsRepositorioCierreContabilidad.cs" />
+   </ItemGroup>
+   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+ </Project>
+\ No newline at end of file
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaModelo_CierreContable_Contabilidad/Repositorios/ClsRepositorioCierreContabilidad.cs b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaModelo_CierreContable_Contabilidad/Repositorios/ClsRepositorioCierreContabilidad.cs
+new file mode 100644
+index 00000000..7652f327
+--- /dev/null
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaModelo_CierreContable_Contabilidad/Repositorios/ClsRepositorioCierreContabilidad.cs	
+@@ -0,0 +1,185 @@
++﻿/*
++ * ==================================================================
++ * Área : Contabilidad
++ * Autor : Donald Osorio
++ * Carné : 0901-23-17982
++ * Fecha : 28/10/2026
++ * ==================================================================
++ * Propósito :
++ *  Cierre de un período contable sobre tblSaldoCuentaPeriodo: marca el
++ *  período como CERRADO, abre el siguiente con los saldos finales como
++ *  saldos iniciales y deja tblCuenta lista para el nuevo período.
++ * Reglas especificas:
++ *  Solo cierra si no quedan pólizas en BORRADOR o VALIDADA y si los
++ *  períodos anteriores ya están cerrados. Si el período tiene pólizas
++ *  aplicadas pero aún no tiene saldos, los arma desde esas pólizas.
++ *  Todo ocurre en una sola transacción.
++ * ===================================================================
++*/
++
++using System;
++using System.Collections.Generic;
++using System.Data;
++using System.Data.Odbc;
++using System.Globalization;
++
++namespace CapaModelo_Contabilidad.Repositorios
++{
++    public class ClsRepositorioCierreContabilidad : ClsRepositorioMaestroContabilidad
++    {
++        private const string _Pendientes =
++            "SELECT COUNT(*) FROM tblPolizaEncabezado WHERE periodoContablePolizaEncabezado = ? AND is_active = TRUE " +
++            "AND estadoPolizaEncabezado IN ('BORRADOR','VALIDADA')";
++
++        private const string _EstadoPeriodo =
++            "SELECT estadoSaldoCuentaPeriodo, COUNT(*) FROM tblSaldoCuentaPeriodo WHERE periodoContableSaldoCuentaPeriodo = ? " +
++            "GROUP BY estadoSaldoCuentaPeriodo";
++
++        private const string _AnteriorAbierto =
++            "SELECT MIN(periodoContableSaldoCuentaPeriodo) FROM tblSaldoCuentaPeriodo WHERE estadoSaldoCuentaPeriodo = 'ABIERTO' " +
++            "AND periodoContableSaldoCuentaPeriodo < ?";
++
++        private const string _Cerrar =
++            "UPDATE tblSaldoCuentaPeriodo SET estadoSaldoCuentaPeriodo = 'CERRADO' WHERE periodoContableSaldoCuentaPeriodo = ?";
++
++        private const string _AbrirSiguiente =
++            "INSERT INTO tblSaldoCuentaPeriodo (idCuenta, periodoContableSaldoCuentaPeriodo, saldoInicialSaldoCuentaPeriodo, " +
++            "cargoSaldoCuentaPeriodo, abonoSaldoCuentaPeriodo, saldoFinalSaldoCuentaPeriodo, estadoSaldoCuentaPeriodo) " +
++            "SELECT s.idCuenta, ?, s.saldoFinalSaldoCuentaPeriodo, 0, 0, s.saldoFinalSaldoCuentaPeriodo, 'ABIERTO' " +
++            "FROM tblSaldoCuentaPeriodo s WHERE s.periodoContableSaldoCuentaPeriodo = (SELECT MAX(u.periodoContableSaldoCuentaPeriodo) " +
++            "FROM tblSaldoCuentaPeriodo u WHERE u.idCuenta = s.idCuenta AND u.periodoContableSaldoCuentaPeriodo <= ?) " +
++            "ON DUPLICATE KEY UPDATE tblSaldoCuentaPeriodo.idCuenta = tblSaldoCuentaPeriodo.idCuenta";
++
++        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++        // Deja tblCuenta lista para el período siguiente (columnas de acumulado del script de main)
++        private const string _ReiniciarCuentas =
++            "UPDATE tblCuenta SET saldoInicialCuenta = saldoActualCuenta, cargoPeriodoCuenta = 0, abonoPeriodoCuenta = 0, " +
++            "cargoActualCuenta = IF(? = '01', 0, cargoActualCuenta), abonoActualCuenta = IF(? = '01', 0, abonoActualCuenta), " +
++            "periodoSaldoCuenta = ? WHERE periodoSaldoCuenta <= ?";
++        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++
++        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++        // Arma los saldos del período desde sus pólizas aplicadas, subiendo a las cuentas padre
++        private const string _GenerarSaldos =
++            "INSERT INTO tblSaldoCuentaPeriodo (idCuenta, periodoContableSaldoCuentaPeriodo, saldoInicialSaldoCuentaPeriodo, " +
++            "cargoSaldoCuentaPeriodo, abonoSaldoCuentaPeriodo, saldoFinalSaldoCuentaPeriodo, estadoSaldoCuentaPeriodo) " +
++            "SELECT m.idCuenta, m.periodo, m.inicial, m.debe, m.haber, 0, 'ABIERTO' FROM (" +
++            "WITH RECURSIVE movimiento AS (" +
++            "SELECT pd.idCuenta, SUM(pd.debePolizaDetalle) AS debe, SUM(pd.haberPolizaDetalle) AS haber " +
++            "FROM tblPolizaDetalle pd INNER JOIN tblPolizaEncabezado pe ON pe.idPolizaEncabezado = pd.idPolizaEncabezado " +
++            "WHERE pe.periodoContablePolizaEncabezado = ? AND pe.estadoPolizaEncabezado = 'APLICADA' AND pe.is_active = TRUE " +
++            "AND pd.is_active = TRUE GROUP BY pd.idCuenta" +
++            "), ascenso AS (" +
++            "SELECT idCuenta, debe, haber FROM movimiento UNION ALL " +
++            "SELECT c.idCuentaPadre, a.debe, a.haber FROM ascenso a INNER JOIN tblCuenta c ON c.idCuenta = a.idCuenta WHERE c.idCuentaPadre IS NOT NULL" +
++            ") SELECT a.idCuenta, ? AS periodo, SUM(a.debe) AS debe, SUM(a.haber) AS haber, " +
++            "COALESCE((SELECT s.saldoFinalSaldoCuentaPeriodo FROM tblSaldoCuentaPeriodo s WHERE s.idCuenta = a.idCuenta " +
++            "AND s.periodoContableSaldoCuentaPeriodo < ? ORDER BY s.periodoContableSaldoCuentaPeriodo DESC LIMIT 1), 0) AS inicial " +
++            "FROM ascenso a INNER JOIN tblCuenta c ON c.idCuenta = a.idCuenta WHERE c.codigoCuenta <> '0' GROUP BY a.idCuenta" +
++            ") AS m";
++
++        // Calcula el saldo final según la naturaleza de la cuenta
++        private const string _CalcularSaldoFinal =
++            "UPDATE tblSaldoCuentaPeriodo s INNER JOIN tblCuenta c ON c.idCuenta = s.idCuenta SET s.saldoFinalSaldoCuentaPeriodo = " +
++            "CASE WHEN c.tipoCuenta = 'DEUDORA' THEN s.saldoInicialSaldoCuentaPeriodo + s.cargoSaldoCuentaPeriodo - s.abonoSaldoCuentaPeriodo " +
++            "ELSE s.saldoInicialSaldoCuentaPeriodo + s.abonoSaldoCuentaPeriodo - s.cargoSaldoCuentaPeriodo END " +
++            "WHERE s.periodoContableSaldoCuentaPeriodo = ?";
++
++        // Copia los saldos armados al catálogo de cuentas
++        private const string _ActualizarCuentas =
++            "UPDATE tblCuenta c INNER JOIN tblSaldoCuentaPeriodo s ON s.idCuenta = c.idCuenta " +
++            "SET c.saldoInicialCuenta = s.saldoInicialSaldoCuentaPeriodo, c.cargoPeriodoCuenta = s.cargoSaldoCuentaPeriodo, " +
++            "c.abonoPeriodoCuenta = s.abonoSaldoCuentaPeriodo, c.saldoActualCuenta = s.saldoFinalSaldoCuentaPeriodo, " +
++            "c.periodoSaldoCuenta = s.periodoContableSaldoCuentaPeriodo WHERE s.periodoContableSaldoCuentaPeriodo = ?";
++
++        // Pólizas aplicadas del período
++        private const string _Aplicadas =
++            "SELECT COUNT(*) FROM tblPolizaEncabezado WHERE periodoContablePolizaEncabezado = ? AND is_active = TRUE " +
++            "AND estadoPolizaEncabezado = 'APLICADA'";
++        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++
++        public string ContabilidadFuncEstadoPeriodo(string Periodo)
++        {
++            using (DataTable Tabla = ContabilidadFuncEjecutarConsulta(_EstadoPeriodo, CommandType.Text,
++                new List<OdbcParameter> { new OdbcParameter("Periodo", Periodo) }))
++            {
++                if (Tabla.Rows.Count == 0) return string.Empty;
++                foreach (DataRow Fila in Tabla.Rows)
++                    if (Convert.ToString(Fila[0]) == "ABIERTO") return "ABIERTO";
++                return "CERRADO";
++            }
++        }
++
++        public string ContabilidadFuncCerrarPeriodo(string Periodo)
++        {
++            string Siguiente = DateTime.ParseExact(Periodo + "-01", "yyyy-MM-dd", CultureInfo.InvariantCulture).AddMonths(1).ToString("yyyy-MM");
++            using (OdbcConnection Conexion = ContabilidadFuncObtenerConexion())
++            {
++                Conexion.Open();
++                using (OdbcTransaction Transaccion = Conexion.BeginTransaction())
++                {
++                    try
++                    {
++                        if (Convert.ToInt32(ContabilidadFuncEscalar(Conexion, Transaccion, _Pendientes, Periodo)) > 0)
++                            throw new InvalidOperationException("Hay pólizas en borrador o validadas sin aplicar en " + Periodo + ". Valídelas, aplique el batch o anúlelas antes del cierre.");
++                        bool Abierto = false, Cerrado = false;
++                        using (OdbcCommand Comando = new OdbcCommand(_EstadoPeriodo, Conexion, Transaccion))
++                        {
++                            Comando.Parameters.AddWithValue("Periodo", Periodo);
++                            using (OdbcDataReader Lector = Comando.ExecuteReader())
++                                while (Lector.Read())
++                                {
++                                    if (Lector.GetString(0) == "ABIERTO") Abierto = true;
++                                    else Cerrado = true;
++                                }
++                        }
++                        if (!Abierto && Cerrado) throw new InvalidOperationException("El período " + Periodo + " ya está cerrado.");
++                        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++                        if (!Abierto)
++                        {
++                            if (Convert.ToInt32(ContabilidadFuncEscalar(Conexion, Transaccion, _Aplicadas, Periodo)) == 0)
++                                throw new InvalidOperationException("El período " + Periodo + " no tiene pólizas aplicadas.");
++                            ContabilidadFuncEjecutar(Conexion, Transaccion, _GenerarSaldos, Periodo, Periodo, Periodo);
++                            ContabilidadFuncEjecutar(Conexion, Transaccion, _CalcularSaldoFinal, Periodo);
++                            ContabilidadFuncEjecutar(Conexion, Transaccion, _ActualizarCuentas, Periodo);
++                        }
++                        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++                        object Anterior = ContabilidadFuncEscalar(Conexion, Transaccion, _AnteriorAbierto, Periodo);
++                        if (Anterior != null && Anterior != DBNull.Value)
++                            throw new InvalidOperationException("Primero debe cerrar el período " + Convert.ToString(Anterior) + ".");
++
++                        ContabilidadFuncEjecutar(Conexion, Transaccion, _Cerrar, Periodo);
++                        ContabilidadFuncEjecutar(Conexion, Transaccion, _AbrirSiguiente, Siguiente, Periodo);
++                        string MesSiguiente = Siguiente.Substring(5, 2);
++                        ContabilidadFuncEjecutar(Conexion, Transaccion, _ReiniciarCuentas, MesSiguiente, MesSiguiente, Siguiente, Periodo);
++                        Transaccion.Commit();
++                        return Siguiente;
++                    }
++                    catch
++                    {
++                        Transaccion.Rollback();
++                        throw;
++                    }
++                }
++            }
++        }
++
++        private static object ContabilidadFuncEscalar(OdbcConnection Conexion, OdbcTransaction Transaccion, string Sentencia, string Periodo)
++        {
++            using (OdbcCommand Comando = new OdbcCommand(Sentencia, Conexion, Transaccion))
++            {
++                Comando.Parameters.AddWithValue("Periodo", Periodo);
++                return Comando.ExecuteScalar();
++            }
++        }
++
++        private static int ContabilidadFuncEjecutar(OdbcConnection Conexion, OdbcTransaction Transaccion, string Sentencia, params string[] Valores)
++        {
++            using (OdbcCommand Comando = new OdbcCommand(Sentencia, Conexion, Transaccion))
++            {
++                foreach (string Valor in Valores) Comando.Parameters.AddWithValue("Valor", Valor);
++                return Comando.ExecuteNonQuery();
++            }
++        }
++    }
++}
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Componentes/ClsPaginacionContabilidad.cs b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Componentes/ClsPaginacionContabilidad.cs
+index 2ced907f..82013f0a 100644
+--- a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Componentes/ClsPaginacionContabilidad.cs	
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Componentes/ClsPaginacionContabilidad.cs	
+@@ -1,8 +1,7 @@
+ ﻿/* Área: Contabilidad. Autor: Gabriel André Guillén Pocón. Carné: 0901-23-1998.
+- * Fecha: 14/10/2026. Propósito: paginación y orden global para listados de consulta (EST-10 §8). */
++ * Fecha: 14/10/2026. Propósito: listado completo con scroll y orden global para tablas de consulta (EST-10 §8). */
+ using System;
+ using System.Data;
+-using System.Drawing;
+ using System.Windows.Forms;
+ 
+ // Inicio de cambio: Mario Taracena - 0901-23-9335 - 27/10/2026
+@@ -11,94 +10,50 @@ namespace CapaVista_Contabilidad.Componentes
+ {
+     internal sealed class ClsPaginacionContabilidad : IDisposable
+     {
++        // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+         private readonly ClsTablaContabilidad _Tabla;
+-        private readonly Panel _Pie;
+-        private readonly Label _Resumen;
+-        private readonly ClsBotonContabilidad _Anterior;
+-        private readonly ClsBotonContabilidad _Siguiente;
+         private DataView _Vista;
+-        private DataTable _PaginaVisible;
+-        private int _Pagina = 1;
+-        private const int _TamanoPagina = 10;
+         private string _CampoOrden = string.Empty;
+         private bool _Descendente;
+ 
+         internal ClsPaginacionContabilidad(ClsTablaContabilidad Tabla)
+         {
+             _Tabla = Tabla;
+-            _Tabla.Height -= 34;
+-            _Pie = new Panel { Name = "ContabilidadPnlPaginacion" + Tabla.Name, BackColor = Color.White,
+-                Location = new Point(Tabla.Left, Tabla.Bottom + 4), Size = new Size(Tabla.Width, 28) };
+-            _Resumen = new Label { Name = "ContabilidadLblPaginacion" + Tabla.Name, Font = new Font("Tahoma", 9F),
+-                ForeColor = Color.FromArgb(35, 50, 61), Location = new Point(0, 5), Size = new Size(Tabla.Width - 250, 22) };
+-            _Anterior = new ClsBotonContabilidad { Name = "ContabilidadBtnAnterior" + Tabla.Name, Text = "Anterior", Font = new Font("Segoe UI", 9F),
+-                Size = new Size(108, 28), Location = new Point(Tabla.Width - 228, 0), Estilo = EstiloBotonContabilidad.Secundario };
+-            _Siguiente = new ClsBotonContabilidad { Name = "ContabilidadBtnSiguiente" + Tabla.Name, Text = "Siguiente", Font = new Font("Segoe UI", 9F),
+-                Size = new Size(108, 28), Location = new Point(Tabla.Width - 108, 0), Estilo = EstiloBotonContabilidad.Secundario };
+-            _Anterior.Click += ContabilidadMetAnterior;
+-            _Siguiente.Click += ContabilidadMetSiguiente;
+-            _Pie.Controls.AddRange(new Control[] { _Resumen, _Anterior, _Siguiente });
+-            Tabla.Parent.Controls.Add(_Pie);
++            _Tabla.ScrollBars = ScrollBars.Both;
+             foreach (DataGridViewColumn Columna in Tabla.Columns) Columna.SortMode = DataGridViewColumnSortMode.Programmatic;
+             Tabla.ColumnHeaderMouseClick += ContabilidadMetOrdenar;
+         }
+ 
+         internal void ContabilidadMetCargar(DataTable Datos)
+         {
+-            if (_Vista != null) _Vista.Dispose();
++            DataView Anterior = _Vista;
+             _Vista = new DataView(Datos);
+             _CampoOrden = string.Empty;
+             _Descendente = false;
+-            _Pagina = 1;
++            _Tabla.DataSource = _Vista;
++            if (Anterior != null) Anterior.Dispose();
+             ContabilidadMetActualizar();
+         }
+ 
+         internal DataRow ContabilidadFuncFilaActual()
+         {
+             if (_Vista == null || _Tabla.CurrentRow == null) return null;
+-            int Indice = (_Pagina - 1) * _TamanoPagina + _Tabla.CurrentRow.Index;
+-            return Indice < _Vista.Count ? _Vista[Indice].Row : null;
++            DataRowView Fila = _Tabla.CurrentRow.DataBoundItem as DataRowView;
++            return Fila == null ? null : Fila.Row;
+         }
+ 
+         internal void ContabilidadMetLimpiar()
+         {
+             _Tabla.DataSource = null;
+             if (_Vista != null) { _Vista.Dispose(); _Vista = null; }
+-            if (_PaginaVisible != null) { _PaginaVisible.Dispose(); _PaginaVisible = null; }
+-            _Resumen.Text = "Registros: 0 · Página 1 de 1";
+-            _Anterior.Enabled = false;
+-            _Siguiente.Enabled = false;
+         }
+ 
+         internal void ContabilidadMetActualizar()
+         {
+             if (_Vista == null) return;
+-            int Paginas = Math.Max(1, (_Vista.Count + _TamanoPagina - 1) / _TamanoPagina);
+-            _Pagina = Math.Min(_Pagina, Paginas);
+-            DataTable NuevaPagina = _Vista.Table.Clone();
+-            int Inicio = (_Pagina - 1) * _TamanoPagina;
+-            int Fin = Math.Min(Inicio + _TamanoPagina, _Vista.Count);
+-            for (int Indice = Inicio; Indice < Fin; Indice++) NuevaPagina.ImportRow(_Vista[Indice].Row);
+-            DataTable Anterior = _PaginaVisible;
+-            _PaginaVisible = NuevaPagina;
+-            _Tabla.DataSource = NuevaPagina;
+-            if (Anterior != null) Anterior.Dispose();
+             foreach (DataGridViewColumn Columna in _Tabla.Columns)
+                 Columna.HeaderCell.SortGlyphDirection = Columna.DataPropertyName == _CampoOrden
+                     ? (_Descendente ? SortOrder.Descending : SortOrder.Ascending) : SortOrder.None;
+-            _Resumen.Text = "Registros: " + _Vista.Count + " · Página " + _Pagina + " de " + Paginas;
+-            _Anterior.Enabled = _Pagina > 1;
+-            _Siguiente.Enabled = _Pagina < Paginas;
+-        }
+-
+-        private void ContabilidadMetAnterior(object Remitente, EventArgs Argumentos)
+-        {
+-            if (_Pagina > 1) { _Pagina--; ContabilidadMetActualizar(); }
+-        }
+-
+-        private void ContabilidadMetSiguiente(object Remitente, EventArgs Argumentos)
+-        {
+-            if (_Vista != null && _Pagina * _TamanoPagina < _Vista.Count) { _Pagina++; ContabilidadMetActualizar(); }
+         }
+ 
+         private void ContabilidadMetOrdenar(object Remitente, DataGridViewCellMouseEventArgs Argumentos)
+@@ -109,18 +64,14 @@ namespace CapaVista_Contabilidad.Componentes
+             _Descendente = _CampoOrden == Campo && !_Descendente;
+             _CampoOrden = Campo;
+             _Vista.Sort = "[" + Campo.Replace("\\", "\\\\").Replace("]", "\\]") + "] " + (_Descendente ? "DESC" : "ASC");
+-            _Pagina = 1;
+             ContabilidadMetActualizar();
+         }
+ 
+         public void Dispose()
+         {
+             _Tabla.ColumnHeaderMouseClick -= ContabilidadMetOrdenar;
+-            _Anterior.Click -= ContabilidadMetAnterior;
+-            _Siguiente.Click -= ContabilidadMetSiguiente;
+             if (_Vista != null) _Vista.Dispose();
+-            if (_PaginaVisible != null) _PaginaVisible.Dispose();
+-            _Pie.Dispose();
+         }
++        // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+     }
+ }
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/FrmCierreContable.Designer.cs b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/FrmCierreContable.Designer.cs
+index b3bb6040..126977a0 100644
+--- a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/FrmCierreContable.Designer.cs	
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/FrmCierreContable.Designer.cs	
+@@ -20,14 +20,19 @@ namespace CapaVista_Contabilidad
+ 
+         private void InitializeComponent()
+         {
++            this.components = new System.ComponentModel.Container();
++            this.ContabilidadTtpBotones = new System.Windows.Forms.ToolTip(this.components);
+             this.ContabilidadLblTitulo = new System.Windows.Forms.Label();
+             this.ContabilidadPnlPeriodo = new Componentes.ClsPanelRedondeadoContabilidad();
+             this.ContabilidadLblPeriodo = new System.Windows.Forms.Label();
+             this.ContabilidadDtpPeriodo = new System.Windows.Forms.DateTimePicker();
+-            this.ContabilidadBtnRevisar = new Componentes.ClsBotonContabilidad();
+-            this.ContabilidadLblAlcance = new System.Windows.Forms.Label();
++            this.ContabilidadBtnRevisar = new System.Windows.Forms.Button();
+             this.ContabilidadPnlPolizas = new Componentes.ClsPanelRedondeadoContabilidad();
+             this.ContabilidadLblPolizas = new System.Windows.Forms.Label();
++            this.ContabilidadBtnInicio = new System.Windows.Forms.Button();
++            this.ContabilidadBtnAnterior = new System.Windows.Forms.Button();
++            this.ContabilidadBtnSiguiente = new System.Windows.Forms.Button();
++            this.ContabilidadBtnFin = new System.Windows.Forms.Button();
+             this.ContabilidadDgvPolizas = new Componentes.ClsTablaContabilidad();
+             this.ContabilidadColPoliza = new System.Windows.Forms.DataGridViewTextBoxColumn();
+             this.ContabilidadColFecha = new System.Windows.Forms.DataGridViewTextBoxColumn();
+@@ -37,7 +42,7 @@ namespace CapaVista_Contabilidad
+             this.ContabilidadColDiferencia = new System.Windows.Forms.DataGridViewTextBoxColumn();
+             this.ContabilidadLblValidacion = new System.Windows.Forms.Label();
+             this.ContabilidadLblResumen = new System.Windows.Forms.Label();
+-            this.ContabilidadBtnSimular = new Componentes.ClsBotonContabilidad();
++            this.ContabilidadBtnCerrar = new System.Windows.Forms.Button();
+             System.Windows.Forms.DataGridViewCellStyle EstiloContabilidadColFecha = new System.Windows.Forms.DataGridViewCellStyle();
+             System.Windows.Forms.DataGridViewCellStyle EstiloContabilidadColDebe = new System.Windows.Forms.DataGridViewCellStyle();
+             System.Windows.Forms.DataGridViewCellStyle EstiloContabilidadColHaber = new System.Windows.Forms.DataGridViewCellStyle();
+@@ -82,18 +87,18 @@ namespace CapaVista_Contabilidad
+             this.ContabilidadDtpPeriodo.ShowUpDown = true;
+             this.ContabilidadBtnRevisar.Name = "ContabilidadBtnRevisar";
+             this.ContabilidadPnlPeriodo.Controls.Add(this.ContabilidadBtnRevisar);
+-            this.ContabilidadBtnRevisar.Text = "Revisar período";
+-            this.ContabilidadBtnRevisar.Location = new System.Drawing.Point(290, 40);
+-            this.ContabilidadBtnRevisar.Size = new System.Drawing.Size(210, 42);
+-            this.ContabilidadBtnRevisar.Estilo = Componentes.EstiloBotonContabilidad.Acento;
+-            this.ContabilidadLblAlcance.Name = "ContabilidadLblAlcance";
+-            this.ContabilidadPnlPeriodo.Controls.Add(this.ContabilidadLblAlcance);
+-            this.ContabilidadLblAlcance.Text = "Las pólizas anuladas no se incluyen en los totales del cierre.";
+-            this.ContabilidadLblAlcance.Location = new System.Drawing.Point(530, 26);
+-            this.ContabilidadLblAlcance.Size = new System.Drawing.Size(560, 64);
+-            this.ContabilidadLblAlcance.ForeColor = System.Drawing.Color.FromArgb(35, 50, 61);
+-            this.ContabilidadLblAlcance.BackColor = System.Drawing.Color.Transparent;
+-            this.ContabilidadLblAlcance.Font = new System.Drawing.Font("Tahoma", 10F);
++            this.ContabilidadBtnRevisar.Location = new System.Drawing.Point(290, 26);
++            this.ContabilidadBtnRevisar.Size = new System.Drawing.Size(60, 60);
++            this.ContabilidadBtnRevisar.BackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnRevisar.BackgroundImage = global::CapaVista_Contabilidad.Properties.Resources.btn_revisarPeriodo;
++            this.ContabilidadBtnRevisar.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
++            this.ContabilidadBtnRevisar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
++            this.ContabilidadBtnRevisar.FlatAppearance.BorderSize = 0;
++            this.ContabilidadBtnRevisar.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnRevisar.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnRevisar.Cursor = System.Windows.Forms.Cursors.Hand;
++            this.ContabilidadBtnRevisar.AccessibleName = "Revisar período";
++            this.ContabilidadTtpBotones.SetToolTip(this.ContabilidadBtnRevisar, "Revisar las pólizas del período");
+             this.ContabilidadPnlPolizas.Name = "ContabilidadPnlPolizas";
+             this.Controls.Add(this.ContabilidadPnlPolizas);
+             this.ContabilidadPnlPolizas.Location = new System.Drawing.Point(24, 222);
+@@ -106,14 +111,70 @@ namespace CapaVista_Contabilidad
+             this.ContabilidadPnlPolizas.Controls.Add(this.ContabilidadLblPolizas);
+             this.ContabilidadLblPolizas.Text = "Pólizas del período";
+             this.ContabilidadLblPolizas.Location = new System.Drawing.Point(20, 14);
+-            this.ContabilidadLblPolizas.Size = new System.Drawing.Size(1092, 24);
++            this.ContabilidadLblPolizas.Size = new System.Drawing.Size(880, 24);
+             this.ContabilidadLblPolizas.ForeColor = System.Drawing.Color.FromArgb(35, 50, 61);
+             this.ContabilidadLblPolizas.BackColor = System.Drawing.Color.Transparent;
+             this.ContabilidadLblPolizas.Font = new System.Drawing.Font("Tahoma", 10F);
++            this.ContabilidadBtnInicio.Name = "ContabilidadBtnInicio";
++            this.ContabilidadPnlPolizas.Controls.Add(this.ContabilidadBtnInicio);
++            this.ContabilidadBtnInicio.Location = new System.Drawing.Point(924, 6);
++            this.ContabilidadBtnInicio.Size = new System.Drawing.Size(44, 44);
++            this.ContabilidadBtnInicio.BackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnInicio.BackgroundImage = global::CapaVista_Contabilidad.Properties.Resources.nav_inicio;
++            this.ContabilidadBtnInicio.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
++            this.ContabilidadBtnInicio.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
++            this.ContabilidadBtnInicio.FlatAppearance.BorderSize = 0;
++            this.ContabilidadBtnInicio.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnInicio.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnInicio.Cursor = System.Windows.Forms.Cursors.Hand;
++            this.ContabilidadBtnInicio.AccessibleName = "Inicio";
++            this.ContabilidadTtpBotones.SetToolTip(this.ContabilidadBtnInicio, "Primera póliza");
++            this.ContabilidadBtnAnterior.Name = "ContabilidadBtnAnterior";
++            this.ContabilidadPnlPolizas.Controls.Add(this.ContabilidadBtnAnterior);
++            this.ContabilidadBtnAnterior.Location = new System.Drawing.Point(972, 6);
++            this.ContabilidadBtnAnterior.Size = new System.Drawing.Size(44, 44);
++            this.ContabilidadBtnAnterior.BackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnAnterior.BackgroundImage = global::CapaVista_Contabilidad.Properties.Resources.nav_anterior;
++            this.ContabilidadBtnAnterior.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
++            this.ContabilidadBtnAnterior.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
++            this.ContabilidadBtnAnterior.FlatAppearance.BorderSize = 0;
++            this.ContabilidadBtnAnterior.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnAnterior.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnAnterior.Cursor = System.Windows.Forms.Cursors.Hand;
++            this.ContabilidadBtnAnterior.AccessibleName = "Anterior";
++            this.ContabilidadTtpBotones.SetToolTip(this.ContabilidadBtnAnterior, "Póliza anterior");
++            this.ContabilidadBtnSiguiente.Name = "ContabilidadBtnSiguiente";
++            this.ContabilidadPnlPolizas.Controls.Add(this.ContabilidadBtnSiguiente);
++            this.ContabilidadBtnSiguiente.Location = new System.Drawing.Point(1020, 6);
++            this.ContabilidadBtnSiguiente.Size = new System.Drawing.Size(44, 44);
++            this.ContabilidadBtnSiguiente.BackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnSiguiente.BackgroundImage = global::CapaVista_Contabilidad.Properties.Resources.nav_siguiente;
++            this.ContabilidadBtnSiguiente.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
++            this.ContabilidadBtnSiguiente.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
++            this.ContabilidadBtnSiguiente.FlatAppearance.BorderSize = 0;
++            this.ContabilidadBtnSiguiente.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnSiguiente.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnSiguiente.Cursor = System.Windows.Forms.Cursors.Hand;
++            this.ContabilidadBtnSiguiente.AccessibleName = "Siguiente";
++            this.ContabilidadTtpBotones.SetToolTip(this.ContabilidadBtnSiguiente, "Póliza siguiente");
++            this.ContabilidadBtnFin.Name = "ContabilidadBtnFin";
++            this.ContabilidadPnlPolizas.Controls.Add(this.ContabilidadBtnFin);
++            this.ContabilidadBtnFin.Location = new System.Drawing.Point(1068, 6);
++            this.ContabilidadBtnFin.Size = new System.Drawing.Size(44, 44);
++            this.ContabilidadBtnFin.BackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnFin.BackgroundImage = global::CapaVista_Contabilidad.Properties.Resources.nav_fin;
++            this.ContabilidadBtnFin.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
++            this.ContabilidadBtnFin.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
++            this.ContabilidadBtnFin.FlatAppearance.BorderSize = 0;
++            this.ContabilidadBtnFin.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnFin.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnFin.Cursor = System.Windows.Forms.Cursors.Hand;
++            this.ContabilidadBtnFin.AccessibleName = "Fin";
++            this.ContabilidadTtpBotones.SetToolTip(this.ContabilidadBtnFin, "Última póliza");
+             this.ContabilidadDgvPolizas.Name = "ContabilidadDgvPolizas";
+             this.ContabilidadPnlPolizas.Controls.Add(this.ContabilidadDgvPolizas);
+-            this.ContabilidadDgvPolizas.Location = new System.Drawing.Point(20, 52);
+-            this.ContabilidadDgvPolizas.Size = new System.Drawing.Size(1092, 214);
++            this.ContabilidadDgvPolizas.Location = new System.Drawing.Point(20, 58);
++            this.ContabilidadDgvPolizas.Size = new System.Drawing.Size(1092, 208);
+             this.ContabilidadDgvPolizas.AutoGenerateColumns = false;
+             this.ContabilidadDgvPolizas.ReadOnly = true;
+             this.ContabilidadDgvPolizas.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right | System.Windows.Forms.AnchorStyles.Bottom;
+@@ -172,18 +233,25 @@ namespace CapaVista_Contabilidad
+             this.ContabilidadLblResumen.ForeColor = System.Drawing.Color.FromArgb(35, 50, 61);
+             this.ContabilidadLblResumen.BackColor = System.Drawing.Color.Transparent;
+             this.ContabilidadLblResumen.Font = new System.Drawing.Font("Tahoma", 10F);
+-            this.ContabilidadBtnSimular.Name = "ContabilidadBtnSimular";
+-            this.Controls.Add(this.ContabilidadBtnSimular);
+-            this.ContabilidadBtnSimular.Text = "Cerrar período";
+-            this.ContabilidadBtnSimular.Location = new System.Drawing.Point(936, 626);
+-            this.ContabilidadBtnSimular.Size = new System.Drawing.Size(220, 42);
+-            this.ContabilidadBtnSimular.Estilo = Componentes.EstiloBotonContabilidad.Dorado;
+-            this.ContabilidadBtnSimular.Icono = global::CapaVista_Contabilidad.Properties.Resources.ico_aplicar;
++            this.ContabilidadBtnCerrar.Name = "ContabilidadBtnCerrar";
++            this.Controls.Add(this.ContabilidadBtnCerrar);
++            this.ContabilidadBtnCerrar.Location = new System.Drawing.Point(1096, 604);
++            this.ContabilidadBtnCerrar.Size = new System.Drawing.Size(60, 60);
++            this.ContabilidadBtnCerrar.BackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnCerrar.BackgroundImage = global::CapaVista_Contabilidad.Properties.Resources.btn_cerrarPeriodo;
++            this.ContabilidadBtnCerrar.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
++            this.ContabilidadBtnCerrar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
++            this.ContabilidadBtnCerrar.FlatAppearance.BorderSize = 0;
++            this.ContabilidadBtnCerrar.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnCerrar.FlatAppearance.MouseDownBackColor = System.Drawing.Color.Transparent;
++            this.ContabilidadBtnCerrar.Cursor = System.Windows.Forms.Cursors.Hand;
++            this.ContabilidadBtnCerrar.AccessibleName = "Cerrar período";
++            this.ContabilidadTtpBotones.SetToolTip(this.ContabilidadBtnCerrar, "Cerrar el período y guardar sus saldos");
+             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+             this.Icon = global::CapaVista_Contabilidad.Properties.Resources.Icono_Contabilidad;
+             this.MaximizeBox = false;
+             this.Name = "FrmCierreContable";
+-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
++            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+             this.Text = "10004 - CierreContable";
+             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
+             this.ClientSize = new System.Drawing.Size(1180, 688);
+@@ -204,10 +272,13 @@ namespace CapaVista_Contabilidad
+         private Componentes.ClsPanelRedondeadoContabilidad ContabilidadPnlPeriodo;
+         private System.Windows.Forms.Label ContabilidadLblPeriodo;
+         private System.Windows.Forms.DateTimePicker ContabilidadDtpPeriodo;
+-        private Componentes.ClsBotonContabilidad ContabilidadBtnRevisar;
+-        private System.Windows.Forms.Label ContabilidadLblAlcance;
++        private System.Windows.Forms.Button ContabilidadBtnRevisar;
+         private Componentes.ClsPanelRedondeadoContabilidad ContabilidadPnlPolizas;
+         private System.Windows.Forms.Label ContabilidadLblPolizas;
++        private System.Windows.Forms.Button ContabilidadBtnInicio;
++        private System.Windows.Forms.Button ContabilidadBtnAnterior;
++        private System.Windows.Forms.Button ContabilidadBtnSiguiente;
++        private System.Windows.Forms.Button ContabilidadBtnFin;
+         private Componentes.ClsTablaContabilidad ContabilidadDgvPolizas;
+         private System.Windows.Forms.DataGridViewTextBoxColumn ContabilidadColPoliza;
+         private System.Windows.Forms.DataGridViewTextBoxColumn ContabilidadColFecha;
+@@ -217,6 +288,7 @@ namespace CapaVista_Contabilidad
+         private System.Windows.Forms.DataGridViewTextBoxColumn ContabilidadColDiferencia;
+         private System.Windows.Forms.Label ContabilidadLblValidacion;
+         private System.Windows.Forms.Label ContabilidadLblResumen;
+-        private Componentes.ClsBotonContabilidad ContabilidadBtnSimular;
++        private System.Windows.Forms.Button ContabilidadBtnCerrar;
++        private System.Windows.Forms.ToolTip ContabilidadTtpBotones;
+     }
+ }
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/FrmCierreContable.cs b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/FrmCierreContable.cs
+index d212912e..cf28b898 100644
+--- a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/FrmCierreContable.cs	
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/FrmCierreContable.cs	
+@@ -1,5 +1,5 @@
+ ﻿/* Área: Contabilidad. Autor: Donald Osorio. Carné: 0901-23-17982.
+- * Fecha: 14/10/2026. Propósito: revisión de cierre sin cambiar períodos. Responsable: Donald. */
++ * Fecha: 14/10/2026. Propósito: revisión y cierre del período contable. Responsable: Donald. */
+ using System;
+ using System.Data;
+ using System.Drawing;
+@@ -21,6 +21,12 @@ namespace CapaVista_Contabilidad
+         private readonly ClsControladorCierreContabilidad _Controlador = new ClsControladorCierreContabilidad();
+         private DataTable _Polizas;
+         private readonly ClsPaginacionContabilidad _Paginacion;
++        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++        // Pone en gris el botón de cierre cuando no se puede usar
++        private readonly ClsPermisosMenuContabilidad _Botones = new ClsPermisosMenuContabilidad();
++        // Permiso de cierre del usuario
++        private bool _PuedeCerrar;
++        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
+ 
+         // Inicio de cambio: Mario Taracena - 0901-23-9335 - 27/10/2026
+         public FrmCierreContable() : this(ClsModeloPermisosPantallaContabilidad.Total)
+@@ -35,17 +41,36 @@ namespace CapaVista_Contabilidad
+             InitializeComponent();
+             ContabilidadMetAplicarPermisos(Permisos);
+             ClsPresentacionContabilidad.ContabilidadMetPrepararVentana(this, "Cierre contable", new Size(1180, 688));
++            // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++            StartPosition = FormStartPosition.CenterScreen;
++            // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
+             ContabilidadDgvPolizas.RowTemplate.Height = 28;
+             ContabilidadDgvPolizas.ColumnHeadersHeight = 34;
+             _Paginacion = new ClsPaginacionContabilidad(ContabilidadDgvPolizas);
+             Disposed += (Remitente, Argumentos) => _Paginacion.Dispose();
++            // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++            Disposed += (Remitente, Argumentos) => _Botones.Dispose();
++            ContabilidadBtnInicio.Click += (Remitente, Argumentos) => ContabilidadMetIrA(0);
++            ContabilidadBtnAnterior.Click += (Remitente, Argumentos) => ContabilidadMetIrA(ContabilidadFuncFilaActual() - 1);
++            ContabilidadBtnSiguiente.Click += (Remitente, Argumentos) => ContabilidadMetIrA(ContabilidadFuncFilaActual() + 1);
++            ContabilidadBtnFin.Click += (Remitente, Argumentos) => ContabilidadMetIrA(ContabilidadDgvPolizas.Rows.Count - 1);
++            // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
+             ContabilidadDtpPeriodo.Value = new DateTime(2026, 10, 1);
+             ContabilidadDtpPeriodo.ValueChanged += (Remitente, Argumentos) => ContabilidadMetRevisar();
+             ContabilidadBtnRevisar.Click += (Remitente, Argumentos) => ContabilidadMetRevisar();
+-            ContabilidadBtnSimular.Click += (Remitente, Argumentos) =>
++            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
++            ContabilidadBtnCerrar.Click += (Remitente, Argumentos) =>
++            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+             {
+-                if (ClsDialogosContabilidad.ContabilidadFuncConfirmar(this, "¿Desea continuar con el cierre del período seleccionado?", "Sí, continuar"))
+-                    Diseno.ContabilidadMetAviso(this, _Controlador.ContabilidadFuncValidarCierre(_Polizas), "Período validado para cierre.");
++                // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
++                if (!ClsDialogosContabilidad.ContabilidadFuncConfirmar(this, "¿Desea cerrar el período " + ContabilidadDtpPeriodo.Value.ToString("yyyy-MM")
++                        + "? Ya no se podrán registrar ni modificar pólizas en él.", "Sí, cerrar"))
++                    return;
++                string Mensaje;
++                bool Cerrado = _Controlador.ContabilidadFuncCerrarPeriodo(ContabilidadDtpPeriodo.Value, out Mensaje);
++                Diseno.ContabilidadMetAviso(this, Cerrado ? string.Empty : Mensaje, Mensaje);
++                ContabilidadMetRevisar();
++                // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+             };
+             ContabilidadMetRevisar();
+         }
+@@ -54,15 +79,43 @@ namespace CapaVista_Contabilidad
+         private void ContabilidadMetAplicarPermisos(ClsModeloPermisosPantallaContabilidad Permisos)
+         // Fin de cambio: Mario Taracena - 0901-23-9335 - 27/10/2026
+         {
+-            ClsPermisosMenuContabilidad.ContabilidadMetRestringir(ContabilidadBtnSimular, Permisos.PuedeEditar);
++            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
++            ClsPermisosMenuContabilidad.ContabilidadMetRestringir(ContabilidadBtnCerrar, Permisos.PuedeEditar);
++            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
++            // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++            _PuedeCerrar = Permisos.PuedeEditar;
++            // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
+         }
+ 
++        // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++        // Fila seleccionada de la tabla de pólizas
++        private int ContabilidadFuncFilaActual()
++        {
++            return ContabilidadDgvPolizas.CurrentRow == null ? 0 : ContabilidadDgvPolizas.CurrentRow.Index;
++        }
++
++        // Mueve la selección a la fila indicada
++        private void ContabilidadMetIrA(int Indice)
++        {
++            if (ContabilidadDgvPolizas.Rows.Count == 0) return;
++            Indice = Math.Max(0, Math.Min(Indice, ContabilidadDgvPolizas.Rows.Count - 1));
++            ContabilidadDgvPolizas.CurrentCell = ContabilidadDgvPolizas.Rows[Indice].Cells[0];
++            ContabilidadDgvPolizas.Rows[Indice].Selected = true;
++        }
++        // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++
+         private void ContabilidadMetRevisar()
+         {
+             DataTable Anterior = _Polizas;
++            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
++            string EstadoPeriodo = string.Empty;
++            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+             try
+             {
+                 _Polizas = _Controlador.ContabilidadFuncPolizas(ContabilidadDtpPeriodo.Value);
++                // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
++                EstadoPeriodo = _Controlador.ContabilidadFuncEstadoPeriodo(ContabilidadDtpPeriodo.Value);
++                // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+             }
+             catch (Exception Excepcion)
+             {
+@@ -71,12 +124,16 @@ namespace CapaVista_Contabilidad
+             }
+             _Paginacion.ContabilidadMetCargar(_Polizas);
+             if (Anterior != null) Anterior.Dispose();
+-            string Error = _Controlador.ContabilidadFuncValidarCierre(_Polizas);
+-            ContabilidadLblValidacion.Text = string.IsNullOrEmpty(Error)
+-                ? "Revisión completada. El período está listo para el cierre."
++            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
++            string Error = EstadoPeriodo == "CERRADO" ? "el período ya está cerrado." : _Controlador.ContabilidadFuncValidarCierre(_Polizas);
++            ContabilidadLblValidacion.Text = EstadoPeriodo == "CERRADO" ? "Período cerrado. Sus saldos ya pasaron al período siguiente."
++                : string.IsNullOrEmpty(Error) ? "Revisión completada. El período está listo para el cierre."
++            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+                 : "Cierre pendiente: " + Error;
+             ContabilidadLblValidacion.ForeColor = string.IsNullOrEmpty(Error) ? Color.FromArgb(70, 104, 125) : Color.FromArgb(197, 143, 62);
+-            ContabilidadBtnSimular.Enabled = string.IsNullOrEmpty(Error);
++            // Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
++            _Botones.ContabilidadMetAplicar(ContabilidadBtnCerrar, _PuedeCerrar && string.IsNullOrEmpty(Error));
++            // Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 10/11/2026
+             // Inicio de cambio: Mario Taracena - 0901-23-9335 - 27/10/2026
+             ClsModeloResumenCierreContabilidad Resumen = _Controlador.ContabilidadFuncResumenCierre(_Polizas);
+             // Fin de cambio: Mario Taracena - 0901-23-9335 - 27/10/2026
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Properties/Resources.Designer.cs b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Properties/Resources.Designer.cs
+index 991fa03c..7c4c858e 100644
+--- a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Properties/Resources.Designer.cs	
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Properties/Resources.Designer.cs	
+@@ -34,9 +34,44 @@
+             }
+         }
+ 
+-        internal static System.Drawing.Bitmap ico_aplicar {
++        internal static System.Drawing.Bitmap btn_revisarPeriodo {
+             get {
+-                object obj = ResourceManager.GetObject("ico_aplicar", resourceCulture);
++                object obj = ResourceManager.GetObject("btn_revisarPeriodo", resourceCulture);
++                return ((System.Drawing.Bitmap)(obj));
++            }
++        }
++
++        internal static System.Drawing.Bitmap btn_cerrarPeriodo {
++            get {
++                object obj = ResourceManager.GetObject("btn_cerrarPeriodo", resourceCulture);
++                return ((System.Drawing.Bitmap)(obj));
++            }
++        }
++
++        internal static System.Drawing.Bitmap nav_inicio {
++            get {
++                object obj = ResourceManager.GetObject("nav_inicio", resourceCulture);
++                return ((System.Drawing.Bitmap)(obj));
++            }
++        }
++
++        internal static System.Drawing.Bitmap nav_anterior {
++            get {
++                object obj = ResourceManager.GetObject("nav_anterior", resourceCulture);
++                return ((System.Drawing.Bitmap)(obj));
++            }
++        }
++
++        internal static System.Drawing.Bitmap nav_siguiente {
++            get {
++                object obj = ResourceManager.GetObject("nav_siguiente", resourceCulture);
++                return ((System.Drawing.Bitmap)(obj));
++            }
++        }
++
++        internal static System.Drawing.Bitmap nav_fin {
++            get {
++                object obj = ResourceManager.GetObject("nav_fin", resourceCulture);
+                 return ((System.Drawing.Bitmap)(obj));
+             }
+         }
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Properties/Resources.resx b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Properties/Resources.resx
+index df359a77..bcd6aca3 100644
+--- a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Properties/Resources.resx	
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Properties/Resources.resx	
+@@ -77,8 +77,23 @@
+ 
+ 
+ 
+-  <data name="ico_aplicar" type="System.Resources.ResXFileRef, System.Windows.Forms">
+-    <value>..\Resources\ico_aplicar.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
++  <data name="btn_revisarPeriodo" type="System.Resources.ResXFileRef, System.Windows.Forms">
++    <value>..\Resources\btn_revisarPeriodo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
++  </data>
++  <data name="btn_cerrarPeriodo" type="System.Resources.ResXFileRef, System.Windows.Forms">
++    <value>..\Resources\btn_cerrarPeriodo.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
++  </data>
++  <data name="nav_inicio" type="System.Resources.ResXFileRef, System.Windows.Forms">
++    <value>..\Resources\nav_inicio.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
++  </data>
++  <data name="nav_anterior" type="System.Resources.ResXFileRef, System.Windows.Forms">
++    <value>..\Resources\nav_anterior.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
++  </data>
++  <data name="nav_siguiente" type="System.Resources.ResXFileRef, System.Windows.Forms">
++    <value>..\Resources\nav_siguiente.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
++  </data>
++  <data name="nav_fin" type="System.Resources.ResXFileRef, System.Windows.Forms">
++    <value>..\Resources\nav_fin.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+   </data>
+   <data name="Icono_Contabilidad" type="System.Resources.ResXFileRef, System.Windows.Forms">
+     <value>..\Resources\Icono-Contabilidad.ico;System.Drawing.Icon, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/btn_cerrarPeriodo.png b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/btn_cerrarPeriodo.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..99423405f9263bd27548937a830ccbb90fb9ed06
+GIT binary patch
+literal 5434
+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
+
+literal 0
+HcmV?d00001
+
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/btn_revisarPeriodo.png b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/btn_revisarPeriodo.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..7130177022387ef7d86dbbc1dc9e6f9bccc88aaa
+GIT binary patch
+literal 5125
+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
+
+literal 0
+HcmV?d00001
+
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/ico_aplicar.png b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/ico_aplicar.png
+deleted file mode 100644
+index c6f890876c94594f2d74c7422f16d0c1139d4779..0000000000000000000000000000000000000000
+GIT binary patch
+literal 0
+HcmV?d00001
+
+literal 1632
+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
+
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/nav_anterior.png b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/nav_anterior.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..4e86da39dfcac9a951371b8f1b6c65831ce8931f
+GIT binary patch
+literal 3141
+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
+
+literal 0
+HcmV?d00001
+
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/nav_fin.png b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/nav_fin.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..f7a23eb3dbe919b0b6a5e8e96a49007ffe356173
+GIT binary patch
+literal 2911
+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
+JPDHLkV1ii?jMxAG
+
+literal 0
+HcmV?d00001
+
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/nav_inicio.png b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/nav_inicio.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..c8115021b9c65159f42a7973a826032f06f09265
+GIT binary patch
+literal 2996
+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
+
+literal 0
+HcmV?d00001
+
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/nav_siguiente.png b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CapaVista_CierreContable_Contabilidad/Resources/nav_siguiente.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..c5dc750026d6b3ad9d24f3c40c950651896c1da1
+GIT binary patch
+literal 3241
+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
+b?-KYIRx6yP^?++*00000NkvXXu0mjftxZH~
+
+literal 0
+HcmV?d00001
+
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CierreContable_Contabilidad.sln b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CierreContable_Contabilidad.sln
+index dc0ce860..184e4f32 100644
+--- a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CierreContable_Contabilidad.sln	
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/CierreContable_Contabilidad.sln	
+@@ -14,6 +14,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapaVista_CierreContable_Co
+ 		{BCABA2F4-5AC8-4AFD-AECA-E5E032A94E78} = {BCABA2F4-5AC8-4AFD-AECA-E5E032A94E78}
+ 	EndProjectSection
+ EndProject
++Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestCierreContable_Contabilidad", "TestCierreContable_Contabilidad\TestCierreContable_Contabilidad.csproj", "{A41F6E27-93C8-4B05-8D3E-5F2B7C10E9D6}"
++	ProjectSection(ProjectDependencies) = postProject
++		{BCABA2F4-5AC8-4AFD-AECA-E5E032A94E78} = {BCABA2F4-5AC8-4AFD-AECA-E5E032A94E78}
++	EndProjectSection
++EndProject
+ Global
+ 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+ 		Debug|Any CPU = Debug|Any CPU
+@@ -32,6 +37,10 @@ Global
+ 		{C25A6EC5-0BEB-4FB2-919A-FA10BC9F9DEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+ 		{C25A6EC5-0BEB-4FB2-919A-FA10BC9F9DEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+ 		{C25A6EC5-0BEB-4FB2-919A-FA10BC9F9DEC}.Release|Any CPU.Build.0 = Release|Any CPU
++		{A41F6E27-93C8-4B05-8D3E-5F2B7C10E9D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
++		{A41F6E27-93C8-4B05-8D3E-5F2B7C10E9D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
++		{A41F6E27-93C8-4B05-8D3E-5F2B7C10E9D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
++		{A41F6E27-93C8-4B05-8D3E-5F2B7C10E9D6}.Release|Any CPU.Build.0 = Release|Any CPU
+ 	EndGlobalSection
+ 	GlobalSection(SolutionProperties) = preSolution
+ 		HideSolutionNode = FALSE
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/Properties/AssemblyInfo.cs b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/Properties/AssemblyInfo.cs
+new file mode 100644
+index 00000000..e355b70c
+--- /dev/null
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/Properties/AssemblyInfo.cs	
+@@ -0,0 +1,15 @@
++using System.Reflection;
++using System.Runtime.InteropServices;
++
++[assembly: AssemblyTitle("TestCierreContable_Contabilidad")]
++[assembly: AssemblyDescription("Pruebas unitarias del cierre contable")]
++[assembly: AssemblyConfiguration("")]
++[assembly: AssemblyCompany("")]
++[assembly: AssemblyProduct("TestCierreContable_Contabilidad")]
++[assembly: AssemblyCopyright("Copyright © 2026")]
++[assembly: AssemblyTrademark("")]
++[assembly: AssemblyCulture("")]
++[assembly: ComVisible(false)]
++[assembly: Guid("7b3e9c52-4d1a-4f68-9a0e-2c5d8f61b7a4")]
++[assembly: AssemblyVersion("1.0.0.0")]
++[assembly: AssemblyFileVersion("1.0.0.0")]
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/TestCierreContable.cs b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/TestCierreContable.cs
+new file mode 100644
+index 00000000..c3802f90
+--- /dev/null
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/TestCierreContable.cs	
+@@ -0,0 +1,191 @@
++/*
++ * ==================================================================
++ * Área : Contabilidad
++ * Autor : Donald Osorio
++ * Carné : 0901-23-17982
++ * Fecha : 03/11/2026
++ * ==================================================================
++ * Propósito :
++ *  Pruebas unitarias (MSTest) de la lógica del cierre contable que
++ *  no depende de la base de datos: ContabilidadFuncValidarCierre y
++ *  ContabilidadFuncResumenCierre de ClsControladorCierreContabilidad.
++ *  Siguen el patrón Arrange / Act / Assert del ejemplo TestCalculadora.
++ * ===================================================================
++*/
++
++using Microsoft.VisualStudio.TestTools.UnitTesting;
++using System;
++using System.Data;
++using CapaControlador_Contabilidad;
++using CapaModelo_Contabilidad.Entidades;
++
++namespace TestCierreContable_Contabilidad
++{
++    [TestClass]
++    public class TestCierreContable
++    {
++        // Metodo auxiliar: arma la tabla con las mismas columnas que devuelve ContabilidadFuncPolizas
++        private static DataTable CrearTablaPolizas()
++        {
++            DataTable Tabla = new DataTable();
++            Tabla.Columns.Add("Poliza", typeof(int));
++            Tabla.Columns.Add("Fecha", typeof(DateTime));
++            Tabla.Columns.Add("Estado", typeof(string));
++            Tabla.Columns.Add("Debe", typeof(decimal));
++            Tabla.Columns.Add("Haber", typeof(decimal));
++            Tabla.Columns.Add("Diferencia", typeof(decimal));
++            return Tabla;
++        }
++
++        private static void AgregarPoliza(DataTable Tabla, int Id, string Estado, decimal Debe, decimal Haber)
++        {
++            Tabla.Rows.Add(Id, new DateTime(2026, 10, 15), Estado, Debe, Haber, Debe - Haber);
++        }
++
++        // ---------------- ContabilidadFuncValidarCierre ----------------
++
++        [TestMethod]
++        public void Test_ValidarCierre_PeriodoSinPolizas()
++        {
++            //Arrange: inicializar las variables
++            ClsControladorCierreContabilidad Controlador = new ClsControladorCierreContabilidad();
++            DataTable Polizas = CrearTablaPolizas();
++            //Act: ejecucion del metodo a probar
++            string resultado = Controlador.ContabilidadFuncValidarCierre(Polizas);
++            //Assert: comprobacion de los resultados
++            Assert.AreEqual("El período no tiene pólizas para revisar.", resultado);
++        }
++
++        [TestMethod]
++        public void Test_ValidarCierre_ConPolizaBorrador()
++        {
++            //Arrange: inicializar las variables
++            ClsControladorCierreContabilidad Controlador = new ClsControladorCierreContabilidad();
++            DataTable Polizas = CrearTablaPolizas();
++            AgregarPoliza(Polizas, 1, "APLICADA", 500m, 500m);
++            AgregarPoliza(Polizas, 2, "BORRADOR", 100m, 100m);
++            //Act: ejecucion del metodo a probar
++            string resultado = Controlador.ContabilidadFuncValidarCierre(Polizas);
++            //Assert: comprobacion de los resultados
++            Assert.AreEqual("Hay pólizas en borrador. Revise y valide o anule antes del cierre.", resultado);
++        }
++
++        [TestMethod]
++        public void Test_ValidarCierre_ConPolizaValidadaSinAplicar()
++        {
++            //Arrange: inicializar las variables
++            ClsControladorCierreContabilidad Controlador = new ClsControladorCierreContabilidad();
++            DataTable Polizas = CrearTablaPolizas();
++            AgregarPoliza(Polizas, 1, "APLICADA", 500m, 500m);
++            AgregarPoliza(Polizas, 2, "VALIDADA", 200m, 200m);
++            //Act: ejecucion del metodo a probar
++            string resultado = Controlador.ContabilidadFuncValidarCierre(Polizas);
++            //Assert: comprobacion de los resultados
++            Assert.AreEqual("Hay pólizas validadas sin aplicar. Ejecute la actualización de saldos antes del cierre.", resultado);
++        }
++
++        [TestMethod]
++        public void Test_ValidarCierre_PolizaAplicadaDescuadrada()
++        {
++            //Arrange: inicializar las variables
++            ClsControladorCierreContabilidad Controlador = new ClsControladorCierreContabilidad();
++            DataTable Polizas = CrearTablaPolizas();
++            AgregarPoliza(Polizas, 1, "APLICADA", 500m, 450m);
++            //Act: ejecucion del metodo a probar
++            string resultado = Controlador.ContabilidadFuncValidarCierre(Polizas);
++            //Assert: comprobacion de los resultados
++            Assert.AreEqual("Hay pólizas aplicadas descuadradas.", resultado);
++        }
++
++        [TestMethod]
++        public void Test_ValidarCierre_SinPolizasAplicadas()
++        {
++            //Arrange: inicializar las variables (solo hay una poliza anulada)
++            ClsControladorCierreContabilidad Controlador = new ClsControladorCierreContabilidad();
++            DataTable Polizas = CrearTablaPolizas();
++            AgregarPoliza(Polizas, 1, "ANULADA", 300m, 300m);
++            //Act: ejecucion del metodo a probar
++            string resultado = Controlador.ContabilidadFuncValidarCierre(Polizas);
++            //Assert: comprobacion de los resultados
++            Assert.AreEqual("El período no tiene pólizas aplicadas.", resultado);
++        }
++
++        [TestMethod]
++        public void Test_ValidarCierre_PeriodoListoParaCerrar()
++        {
++            //Arrange: inicializar las variables
++            ClsControladorCierreContabilidad Controlador = new ClsControladorCierreContabilidad();
++            DataTable Polizas = CrearTablaPolizas();
++            AgregarPoliza(Polizas, 1, "APLICADA", 500m, 500m);
++            AgregarPoliza(Polizas, 2, "APLICADA", 1250.75m, 1250.75m);
++            //Act: ejecucion del metodo a probar
++            string resultado = Controlador.ContabilidadFuncValidarCierre(Polizas);
++            //Assert: comprobacion de los resultados (cadena vacia = se puede cerrar)
++            Assert.AreEqual(string.Empty, resultado);
++        }
++
++        [TestMethod]
++        public void Test_ValidarCierre_AnuladaNoBloqueaElCierre()
++        {
++            //Arrange: inicializar las variables
++            ClsControladorCierreContabilidad Controlador = new ClsControladorCierreContabilidad();
++            DataTable Polizas = CrearTablaPolizas();
++            AgregarPoliza(Polizas, 1, "APLICADA", 800m, 800m);
++            AgregarPoliza(Polizas, 2, "ANULADA", 999m, 0m);
++            //Act: ejecucion del metodo a probar
++            string resultado = Controlador.ContabilidadFuncValidarCierre(Polizas);
++            //Assert: comprobacion de los resultados
++            Assert.AreEqual(string.Empty, resultado);
++        }
++
++        // ---------------- ContabilidadFuncResumenCierre ----------------
++
++        [TestMethod]
++        public void Test_ResumenCierre_SumaSoloPolizasAplicadas()
++        {
++            //Arrange: inicializar las variables
++            ClsControladorCierreContabilidad Controlador = new ClsControladorCierreContabilidad();
++            DataTable Polizas = CrearTablaPolizas();
++            AgregarPoliza(Polizas, 1, "APLICADA", 500m, 500m);
++            AgregarPoliza(Polizas, 2, "APLICADA", 250m, 250m);
++            AgregarPoliza(Polizas, 3, "BORRADOR", 900m, 900m);
++            AgregarPoliza(Polizas, 4, "ANULADA", 100m, 100m);
++            //Act: ejecucion del metodo a probar
++            ClsModeloResumenCierreContabilidad resumen = Controlador.ContabilidadFuncResumenCierre(Polizas);
++            //Assert: comprobacion de los resultados
++            Assert.AreEqual(2, resumen.Aplicadas);
++            Assert.AreEqual(1, resumen.Borradores);
++            Assert.AreEqual(750m, resumen.Debe);
++            Assert.AreEqual(750m, resumen.Haber);
++        }
++
++        [TestMethod]
++        public void Test_ResumenCierre_TablaVacia()
++        {
++            //Arrange: inicializar las variables
++            ClsControladorCierreContabilidad Controlador = new ClsControladorCierreContabilidad();
++            DataTable Polizas = CrearTablaPolizas();
++            //Act: ejecucion del metodo a probar
++            ClsModeloResumenCierreContabilidad resumen = Controlador.ContabilidadFuncResumenCierre(Polizas);
++            //Assert: comprobacion de los resultados
++            Assert.AreEqual(0, resumen.Aplicadas);
++            Assert.AreEqual(0, resumen.Borradores);
++            Assert.AreEqual(0m, resumen.Debe);
++            Assert.AreEqual(0m, resumen.Haber);
++        }
++
++        [TestMethod]
++        public void Test_ResumenCierre_ValidadasNoCuentanComoAplicadas()
++        {
++            //Arrange: inicializar las variables
++            ClsControladorCierreContabilidad Controlador = new ClsControladorCierreContabilidad();
++            DataTable Polizas = CrearTablaPolizas();
++            AgregarPoliza(Polizas, 1, "VALIDADA", 400m, 400m);
++            //Act: ejecucion del metodo a probar
++            ClsModeloResumenCierreContabilidad resumen = Controlador.ContabilidadFuncResumenCierre(Polizas);
++            //Assert: comprobacion de los resultados
++            Assert.AreEqual(0, resumen.Aplicadas);
++            Assert.AreEqual(0m, resumen.Debe);
++        }
++    }
++}
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/TestCierreContable_Contabilidad.csproj b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/TestCierreContable_Contabilidad.csproj
+new file mode 100644
+index 00000000..fb3c1246
+--- /dev/null
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/TestCierreContable_Contabilidad.csproj	
+@@ -0,0 +1,83 @@
++<?xml version="1.0" encoding="utf-8"?>
++<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++  <Import Project="..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.props" Condition="Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.props')" />
++  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
++  <PropertyGroup>
++    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
++    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
++    <ProjectGuid>{A41F6E27-93C8-4B05-8D3E-5F2B7C10E9D6}</ProjectGuid>
++    <OutputType>Library</OutputType>
++    <AppDesignerFolder>Properties</AppDesignerFolder>
++    <RootNamespace>TestCierreContable_Contabilidad</RootNamespace>
++    <AssemblyName>TestCierreContable_Contabilidad</AssemblyName>
++    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
++    <FileAlignment>512</FileAlignment>
++    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
++    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
++    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
++    <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
++    <IsCodedUITest>False</IsCodedUITest>
++    <TestProjectType>UnitTest</TestProjectType>
++    <Deterministic>true</Deterministic>
++    <UseSharedCompilation>false</UseSharedCompilation>
++    <PlatformTarget>x64</PlatformTarget>
++  </PropertyGroup>
++  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
++    <DebugSymbols>true</DebugSymbols>
++    <DebugType>full</DebugType>
++    <Optimize>false</Optimize>
++    <OutputPath>bin\Debug\</OutputPath>
++    <DefineConstants>DEBUG;TRACE</DefineConstants>
++    <ErrorReport>prompt</ErrorReport>
++    <WarningLevel>4</WarningLevel>
++  </PropertyGroup>
++  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
++    <DebugType>pdbonly</DebugType>
++    <Optimize>true</Optimize>
++    <OutputPath>bin\Release\</OutputPath>
++    <DefineConstants>TRACE</DefineConstants>
++    <ErrorReport>prompt</ErrorReport>
++    <WarningLevel>4</WarningLevel>
++  </PropertyGroup>
++  <ItemGroup>
++    <Reference Include="CapaControlador_CierreContable_Contabilidad">
++      <HintPath>..\CapaControlador_CierreContable_Contabilidad\bin\$(Configuration)\CapaControlador_CierreContable_Contabilidad.dll</HintPath>
++      <Private>True</Private>
++    </Reference>
++    <Reference Include="CapaModelo_CierreContable_Contabilidad">
++      <HintPath>..\CapaModelo_CierreContable_Contabilidad\bin\$(Configuration)\CapaModelo_CierreContable_Contabilidad.dll</HintPath>
++      <Private>True</Private>
++    </Reference>
++    <Reference Include="CapaModelo_Contabilidad">
++      <HintPath>..\..\Contabilidad\CapaModelo_Contabilidad\bin\$(Configuration)\CapaModelo_Contabilidad.dll</HintPath>
++      <Private>True</Private>
++    </Reference>
++    <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
++      <HintPath>..\packages\MSTest.TestFramework.2.2.10\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.dll</HintPath>
++    </Reference>
++    <Reference Include="Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
++      <HintPath>..\packages\MSTest.TestFramework.2.2.10\lib\net45\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll</HintPath>
++    </Reference>
++    <Reference Include="System" />
++    <Reference Include="System.Core" />
++    <Reference Include="System.Data" />
++    <Reference Include="System.Xml" />
++  </ItemGroup>
++  <ItemGroup>
++    <Compile Include="Properties\AssemblyInfo.cs" />
++    <Compile Include="TestCierreContable.cs" />
++  </ItemGroup>
++  <ItemGroup>
++    <None Include="packages.config" />
++  </ItemGroup>
++  <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
++  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
++  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
++    <PropertyGroup>
++      <ErrorText>Este proyecto hace referencia a paquetes NuGet que no se encuentran en este equipo. Use la restauración de paquetes NuGet para descargarlos.</ErrorText>
++    </PropertyGroup>
++    <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.props'))" />
++    <Error Condition="!Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets'))" />
++  </Target>
++  <Import Project="..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets" Condition="Exists('..\packages\MSTest.TestAdapter.2.2.10\build\net46\MSTest.TestAdapter.targets')" />
++</Project>
+diff --git a/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/packages.config b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/packages.config
+new file mode 100644
+index 00000000..2f308eef
+--- /dev/null
++++ b/codigo/modulos/contabilidad/Bibliotecas de Contabilidad/CierreContable_Contabilidad/TestCierreContable_Contabilidad/packages.config	
+@@ -0,0 +1,5 @@
++<?xml version="1.0" encoding="utf-8"?>
++<packages>
++  <package id="MSTest.TestAdapter" version="2.2.10" targetFramework="net48" />
++  <package id="MSTest.TestFramework" version="2.2.10" targetFramework="net48" />
++</packages>
