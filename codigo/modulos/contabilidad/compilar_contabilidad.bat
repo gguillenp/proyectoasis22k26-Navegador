@@ -75,14 +75,18 @@ for %%K in (CapaModelo CapaControlador CapaVista) do (
 
 :: Inicio de cambio: Gabriel Andre Guillen Pocon - 0901-23-1998 - 03/11/2026
 set "L=%RAIZ%\codigo\modulos\Logistica"
-for %%K in (CapaModelo CapaControlador CapaVista) do (
-    call :compilar "%L%\Cierre_Inventario\%%K_CierreInventario\%%K_CierreInventario.csproj" || goto :fallo
-)
-for %%S in (Inventario MuestreoAuditoria TransporteExterno TransporteInterno Traslados) do (
+:: Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 09/11/2026
+:: Logistica renombro Cierre_Inventario a CierreInventario_Logistica, y su MDI
+:: necesita las DLL de Enlace_OtrosModulos_Logistica antes de compilar.
+for %%S in (CierreInventario Inventario MuestreoAuditoria TransporteExterno TransporteInterno Traslados) do (
     for %%K in (CapaModelo CapaControlador CapaVista) do (
         call :compilar "%L%\%%S_Logistica\%%K_%%S_Logistica\%%K_%%S_Logistica.csproj" || goto :fallo
     )
 )
+for %%K in (CapaModelo_Enlace_Logistica CapaContralador_Enlace_Logistica CapaVista_Enlace_Logistica) do (
+    call :compilar "%L%\Enlace_OtrosModulos_Logistica\%%K\%%K.csproj" || goto :fallo
+)
+:: Fin de cambio: Oskar Cermeño - 0901-23-15379 - 09/11/2026
 for %%K in (CapaModelo CapaControlador CapaVista) do (
     call :compilar "%L%\Logistica\%%K_Logistica\%%K_Logistica.csproj" || goto :fallo
 )
