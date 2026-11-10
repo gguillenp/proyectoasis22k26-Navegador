@@ -9,10 +9,12 @@ USE dbContabilidad;
 --  1. DATOS DE CATÁLOGOS
 -- =============================================================================
 
-INSERT INTO tblPais (idPais, nombrePais) VALUES
-(1, 'Guatemala'),
-(2, 'El Salvador'),
-(3, 'Honduras');
+-- Inicio de cambio: Dylan Hernández - 0901-23-519 - 29/10/2026
+INSERT INTO tblPais (idPais, nombrePais, codigoMonedaPais) VALUES
+(1, 'Guatemala',   'GTQ'),
+(2, 'El Salvador', 'USD'),
+(3, 'Honduras',    'HNL');
+-- Fin de cambio: Dylan Hernández - 0901-23-519 - 29/10/2026
 
 INSERT INTO tblModuloContable (idModuloContable, nombreModuloContable, codigoModuloContable) VALUES
 (1, 'Contabilidad',    'MOD-CONTA'),
@@ -435,6 +437,10 @@ UPDATE tblCuenta c
        c.cargoPeriodoCuenta = s.cargoSaldoCuentaPeriodo,
        c.abonoPeriodoCuenta = s.abonoSaldoCuentaPeriodo,
        c.saldoActualCuenta  = s.saldoFinalSaldoCuentaPeriodo,
-       c.cargoActualCuenta  = s.cargoSaldoCuentaPeriodo,
-       c.abonoActualCuenta  = s.abonoSaldoCuentaPeriodo,
+       -- Inicio de cambio: Dylan Hernández - 0901-23-519 - 28/10/2026
+       c.cargoAcumuladoCuenta = (SELECT SUM(a.cargoSaldoCuentaPeriodo) FROM tblSaldoCuentaPeriodo a
+                                  WHERE a.idCuenta = c.idCuenta AND a.periodoContableSaldoCuentaPeriodo BETWEEN '2026-01' AND '2026-10'),
+       c.abonoAcumuladoCuenta = (SELECT SUM(a.abonoSaldoCuentaPeriodo) FROM tblSaldoCuentaPeriodo a
+                                  WHERE a.idCuenta = c.idCuenta AND a.periodoContableSaldoCuentaPeriodo BETWEEN '2026-01' AND '2026-10'),
+       -- Fin de cambio: Dylan Hernández - 0901-23-519 - 28/10/2026
        c.periodoSaldoCuenta = '2026-10';

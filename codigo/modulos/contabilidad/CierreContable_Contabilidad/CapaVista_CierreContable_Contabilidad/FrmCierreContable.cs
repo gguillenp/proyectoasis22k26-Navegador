@@ -1,5 +1,5 @@
 ﻿/* Área: Contabilidad. Autor: Donald Osorio. Carné: 0901-23-17982.
- * Fecha: 14/10/2026. Propósito: revisión de cierre sin cambiar períodos. Responsable: Donald. */
+ * Fecha: 14/10/2026. Propósito: revisión y cierre del período contable. Responsable: Donald. */
 using System;
 using System.Data;
 using System.Drawing;
@@ -42,10 +42,19 @@ namespace CapaVista_Contabilidad
             ContabilidadDtpPeriodo.Value = new DateTime(2026, 10, 1);
             ContabilidadDtpPeriodo.ValueChanged += (Remitente, Argumentos) => ContabilidadMetRevisar();
             ContabilidadBtnRevisar.Click += (Remitente, Argumentos) => ContabilidadMetRevisar();
-            ContabilidadBtnSimular.Click += (Remitente, Argumentos) =>
+            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+            ContabilidadBtnCerrar.Click += (Remitente, Argumentos) =>
+            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
             {
-                if (ClsDialogosContabilidad.ContabilidadFuncConfirmar(this, "¿Desea continuar con el cierre del período seleccionado?", "Sí, continuar"))
-                    Diseno.ContabilidadMetAviso(this, _Controlador.ContabilidadFuncValidarCierre(_Polizas), "Período validado para cierre.");
+                // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+                if (!ClsDialogosContabilidad.ContabilidadFuncConfirmar(this, "¿Desea cerrar el período " + ContabilidadDtpPeriodo.Value.ToString("yyyy-MM")
+                        + "? Ya no se podrán registrar ni modificar pólizas en él.", "Sí, cerrar"))
+                    return;
+                string Mensaje;
+                bool Cerrado = _Controlador.ContabilidadFuncCerrarPeriodo(ContabilidadDtpPeriodo.Value, out Mensaje);
+                Diseno.ContabilidadMetAviso(this, Cerrado ? string.Empty : Mensaje, Mensaje);
+                ContabilidadMetRevisar();
+                // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
             };
             ContabilidadMetRevisar();
         }
@@ -54,15 +63,23 @@ namespace CapaVista_Contabilidad
         private void ContabilidadMetAplicarPermisos(ClsModeloPermisosPantallaContabilidad Permisos)
         // Fin de cambio: Mario Taracena - 0901-23-9335 - 27/10/2026
         {
-            ClsPermisosMenuContabilidad.ContabilidadMetRestringir(ContabilidadBtnSimular, Permisos.PuedeEditar);
+            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+            ClsPermisosMenuContabilidad.ContabilidadMetRestringir(ContabilidadBtnCerrar, Permisos.PuedeEditar);
+            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
         }
 
         private void ContabilidadMetRevisar()
         {
             DataTable Anterior = _Polizas;
+            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+            string EstadoPeriodo = string.Empty;
+            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
             try
             {
                 _Polizas = _Controlador.ContabilidadFuncPolizas(ContabilidadDtpPeriodo.Value);
+                // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+                EstadoPeriodo = _Controlador.ContabilidadFuncEstadoPeriodo(ContabilidadDtpPeriodo.Value);
+                // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
             }
             catch (Exception Excepcion)
             {
@@ -71,12 +88,16 @@ namespace CapaVista_Contabilidad
             }
             _Paginacion.ContabilidadMetCargar(_Polizas);
             if (Anterior != null) Anterior.Dispose();
-            string Error = _Controlador.ContabilidadFuncValidarCierre(_Polizas);
-            ContabilidadLblValidacion.Text = string.IsNullOrEmpty(Error)
-                ? "Revisión completada. El período está listo para el cierre."
+            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+            string Error = EstadoPeriodo == "CERRADO" ? "el período ya está cerrado." : _Controlador.ContabilidadFuncValidarCierre(_Polizas);
+            ContabilidadLblValidacion.Text = EstadoPeriodo == "CERRADO" ? "Período cerrado. Sus saldos ya pasaron al período siguiente."
+                : string.IsNullOrEmpty(Error) ? "Revisión completada. El período está listo para el cierre."
+            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
                 : "Cierre pendiente: " + Error;
             ContabilidadLblValidacion.ForeColor = string.IsNullOrEmpty(Error) ? Color.FromArgb(70, 104, 125) : Color.FromArgb(197, 143, 62);
-            ContabilidadBtnSimular.Enabled = string.IsNullOrEmpty(Error);
+            // Inicio de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
+            ContabilidadBtnCerrar.Enabled = string.IsNullOrEmpty(Error);
+            // Fin de cambio: Donald Osorio - 0901-23-17982 - 28/10/2026
             // Inicio de cambio: Mario Taracena - 0901-23-9335 - 27/10/2026
             ClsModeloResumenCierreContabilidad Resumen = _Controlador.ContabilidadFuncResumenCierre(_Polizas);
             // Fin de cambio: Mario Taracena - 0901-23-9335 - 27/10/2026

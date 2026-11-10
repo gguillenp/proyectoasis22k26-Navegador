@@ -358,3 +358,33 @@ JOIN    tblPolizaDetalle    pd ON pd.idPolizaEncabezado = pe.idPolizaEncabezado
 WHERE   pe.documentoOrigenPolizaEncabezado IS NOT NULL
 GROUP BY pe.idPolizaEncabezado, m.nombreModuloContable, pe.documentoOrigenPolizaEncabezado,
          pe.codigoPolizaEncabezado, pe.fechaPolizaEncabezado, pe.estadoPolizaEncabezado, pe.created_at;
+
+-- =============================================================================
+--  7. AJUSTES SOBRE TABLAS EXISTENTES
+--  Para bases que ya tienen las tablas creadas: ejecutar solo esta sección.
+-- =============================================================================
+
+-- Inicio de cambio: Dylan Hernández - 0901-23-519 - 28/10/2026
+ALTER TABLE tblModuloContable
+    ADD COLUMN metodoActualizacionModuloContable VARCHAR(10) NOT NULL DEFAULT 'BATCH' AFTER codigoModuloContable,
+    ADD CONSTRAINT ckModuloMetodoActualizacion CHECK (metodoActualizacionModuloContable IN ('ONLINE','BATCH'));
+
+ALTER TABLE tblCuenta
+    RENAME COLUMN cargoActualCuenta TO cargoAcumuladoCuenta,
+    RENAME COLUMN abonoActualCuenta TO abonoAcumuladoCuenta;
+
+ALTER TABLE tblActivoFijo
+    DROP COLUMN codigoCentroCostoActivoFijo;
+-- Fin de cambio: Dylan Hernández - 0901-23-519 - 28/10/2026
+
+-- Inicio de cambio: Dylan Hernández - 0901-23-519 - 29/10/2026
+ALTER TABLE tblPais
+    ADD COLUMN codigoMonedaPais CHAR(3) NOT NULL DEFAULT 'GTQ' AFTER nombrePais;
+
+UPDATE tblPais SET codigoMonedaPais = CASE nombrePais WHEN 'El Salvador' THEN 'USD' WHEN 'Honduras' THEN 'HNL' ELSE 'GTQ' END
+WHERE idPais > 0;
+
+ALTER TABLE tblPolizaEncabezado
+    ADD COLUMN idPais INT NOT NULL DEFAULT 1 AFTER idModuloContable,
+    ADD CONSTRAINT Fk_PolizaEncabezado_Pais FOREIGN KEY (idPais) REFERENCES tblPais (idPais) ON DELETE RESTRICT ON UPDATE CASCADE;
+-- Fin de cambio: Dylan Hernández - 0901-23-519 - 29/10/2026
