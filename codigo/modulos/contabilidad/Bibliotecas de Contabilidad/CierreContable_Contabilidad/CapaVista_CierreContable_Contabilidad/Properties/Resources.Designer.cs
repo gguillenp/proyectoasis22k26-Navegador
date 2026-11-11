@@ -34,9 +34,44 @@
             }
         }
 
-        internal static System.Drawing.Bitmap ico_aplicar {
+        internal static System.Drawing.Bitmap btn_revisarPeriodo {
             get {
-                object obj = ResourceManager.GetObject("ico_aplicar", resourceCulture);
+                object obj = ResourceManager.GetObject("btn_revisarPeriodo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        internal static System.Drawing.Bitmap btn_cerrarPeriodo {
+            get {
+                object obj = ResourceManager.GetObject("btn_cerrarPeriodo", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        internal static System.Drawing.Bitmap nav_inicio {
+            get {
+                object obj = ResourceManager.GetObject("nav_inicio", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        internal static System.Drawing.Bitmap nav_anterior {
+            get {
+                object obj = ResourceManager.GetObject("nav_anterior", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        internal static System.Drawing.Bitmap nav_siguiente {
+            get {
+                object obj = ResourceManager.GetObject("nav_siguiente", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+
+        internal static System.Drawing.Bitmap nav_fin {
+            get {
+                object obj = ResourceManager.GetObject("nav_fin", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

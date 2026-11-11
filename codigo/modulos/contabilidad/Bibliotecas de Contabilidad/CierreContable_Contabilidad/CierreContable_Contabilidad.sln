@@ -14,6 +14,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CapaVista_CierreContable_Co
 		{BCABA2F4-5AC8-4AFD-AECA-E5E032A94E78} = {BCABA2F4-5AC8-4AFD-AECA-E5E032A94E78}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestCierreContable_Contabilidad", "TestCierreContable_Contabilidad\TestCierreContable_Contabilidad.csproj", "{A41F6E27-93C8-4B05-8D3E-5F2B7C10E9D6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BCABA2F4-5AC8-4AFD-AECA-E5E032A94E78} = {BCABA2F4-5AC8-4AFD-AECA-E5E032A94E78}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +37,10 @@ Global
 		{C25A6EC5-0BEB-4FB2-919A-FA10BC9F9DEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C25A6EC5-0BEB-4FB2-919A-FA10BC9F9DEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C25A6EC5-0BEB-4FB2-919A-FA10BC9F9DEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A41F6E27-93C8-4B05-8D3E-5F2B7C10E9D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A41F6E27-93C8-4B05-8D3E-5F2B7C10E9D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A41F6E27-93C8-4B05-8D3E-5F2B7C10E9D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A41F6E27-93C8-4B05-8D3E-5F2B7C10E9D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
