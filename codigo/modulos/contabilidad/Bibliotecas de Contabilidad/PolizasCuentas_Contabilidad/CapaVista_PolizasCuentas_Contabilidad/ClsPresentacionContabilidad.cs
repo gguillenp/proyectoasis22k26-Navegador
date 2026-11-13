@@ -24,8 +24,11 @@ namespace CapaVista_Contabilidad
         {
             // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026
             { "FrmPolizas", 10001 },
-            { "FrmPolizasLocales", 10006 }
+            { "FrmPolizasLocales", 10006 },
             // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 28/10/2026
+            // Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 11/11/2026
+            { "FrmReportePolizas", 10001 }
+            // Fin de cambio: Oskar Cermeño - 0901-23-15379 - 11/11/2026
         };
 
         internal static void ContabilidadMetPrepararVentana(Form Formulario, string Titulo, Size AreaCliente)
