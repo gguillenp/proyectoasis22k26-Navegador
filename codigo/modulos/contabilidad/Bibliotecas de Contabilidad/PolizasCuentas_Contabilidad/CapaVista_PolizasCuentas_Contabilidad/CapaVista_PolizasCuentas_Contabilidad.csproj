@@ -52,6 +52,26 @@
       <HintPath>..\..\..\..\..\componentes\navegador\Navegador\CapaVista_Navegador\bin\Debug\CapaControlador_Navegador.dll</HintPath>
     </Reference>
     <!-- Fin de cambio: Oskar Cermeño - 0901-23-15379 - 07/11/2026 -->
+    <!-- Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 11/11/2026 -->
+    <Reference Include="Microsoft.ReportViewer.Common, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.150.1652.0\lib\net40\Microsoft.ReportViewer.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.DataVisualization, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.150.1652.0\lib\net40\Microsoft.ReportViewer.DataVisualization.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.Design, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.150.1652.0\lib\net40\Microsoft.ReportViewer.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.ProcessingObjectModel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.150.1652.0\lib\net40\Microsoft.ReportViewer.ProcessingObjectModel.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.WinForms, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.150.1652.0\lib\net40\Microsoft.ReportViewer.WinForms.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Types, Version=14.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.SqlServer.Types.14.0.314.76\lib\net40\Microsoft.SqlServer.Types.dll</HintPath>
+    </Reference>
+    <!-- Fin de cambio: Oskar Cermeño - 0901-23-15379 - 11/11/2026 -->
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -70,6 +90,9 @@
   <ItemGroup>
     <Compile Include="ClsPermisosMenuContabilidad.cs" />
     <Compile Include="ClsPresentacionContabilidad.cs" />
+    <!-- Inicio de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 11/11/2026 -->
+    <Compile Include="ClsReportePolizasContabilidad.cs" />
+    <!-- Fin de cambio: Gabriel André Guillén Pocón - 0901-23-1998 - 11/11/2026 -->
     <Compile Include="FrmPolizas.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -108,5 +131,20 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
+  <!-- Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 11/11/2026 -->
+  <ItemGroup>
+    <Compile Include="ClsReportePolizasContabilidad.Reporte.cs" />
+    <Compile Include="frmReportes\FrmReportePolizas.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmReportes\FrmReportePolizas.Designer.cs">
+      <DependentUpon>FrmReportePolizas.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Reportes\RpReportePolizas.rdlc">
+      <LogicalName>CapaVista_Contabilidad.Reportes.RpReportePolizas.rdlc</LogicalName>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <!-- Fin de cambio: Oskar Cermeño - 0901-23-15379 - 11/11/2026 -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

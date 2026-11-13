@@ -64,5 +64,13 @@
     <Compile Include="Modelos\ClsModeloPolizaContabilidad.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <!-- Inicio de cambio: Oskar Cermeño - 0901-23-15379 - 11/11/2026 -->
+  <ItemGroup>
+    <Compile Include="ClsControladorReportePolizasContabilidad.cs" />
+    <Compile Include="Modelos\ClsModeloLineaReportePolizaContabilidad.cs" />
+    <Compile Include="Modelos\ClsModeloReportePolizasContabilidad.cs" />
+    <Compile Include="Modelos\ClsModeloTotalReportePolizaContabilidad.cs" />
+  </ItemGroup>
+  <!-- Fin de cambio: Oskar Cermeño - 0901-23-15379 - 11/11/2026 -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
