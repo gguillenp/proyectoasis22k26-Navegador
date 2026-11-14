@@ -13,6 +13,6 @@
   <ItemGroup>
     <ProjectReference Include="..\CapaModelo_DisponibilidadDiariaBancos\CapaModelo_DisponibilidadDiariaBancos.csproj" />
     <ProjectReference Include="..\CapaControlador_DisponibilidadDiariaBancos\CapaControlador_DisponibilidadDiariaBancos.csproj" />
-    <ProjectReference Include="..\..\CapaTipoDeCambio\CapaModelo_TipoCambioBancos\CapaModelo_TipoCambioBancos.csproj" />
+    <ProjectReference Include="..\..\Tipo_CambioBancos\CapaModelo_TipoCambioBancos\CapaModelo_TipoCambioBancos.csproj" />
   </ItemGroup>
 </Project>

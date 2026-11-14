@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CapaControlador_PolizasCuentas_Contabilidad">
-      <HintPath>..\..\..\..\contabilidad\PolizasCuentas_Contabilidad\CapaControlador_PolizasCuentas_Contabilidad\bin\Debug\CapaControlador_PolizasCuentas_Contabilidad.dll</HintPath>
+      <HintPath>..\..\..\..\contabilidad\Bibliotecas de Contabilidad\PolizasCuentas_Contabilidad\CapaControlador_PolizasCuentas_Contabilidad\bin\Debug\CapaControlador_PolizasCuentas_Contabilidad.dll</HintPath>
     </Reference>
     <Reference Include="CapaControlador_Seguridad">
       <HintPath>..\..\..\..\..\componentes\seguridad\Seguridad\CapaControlador_Seguridad\bin\Debug\CapaControlador_Seguridad.dll</HintPath>
